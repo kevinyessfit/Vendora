@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MERCHANT
+  VENDOR
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  password     String
+  role         Role      @default(VENDOR)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  products     Product[]
+  affiliateLinks AffiliateLink[]
+  clicks       Click[]
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  imageUrl      String?
+  price              Float
+  commissionPct      Float    @default(10) // vendor percentage
+  platformCommission Float    @default(5)  // platform percentage
+  isActive           Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  merchant   User   @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchantId String
+
+  affiliateLinks AffiliateLink[]
+  orders         Order[]
+}
+
+model AffiliateLink {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  vendor   User   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorId String
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  clicks      Click[]
+  earnings    Earning[]
+  orders      Order[]
+
+  @@unique([vendorId, productId])
+}
+
+model Click {
+  id              String        @id @default(uuid())
+  ip              String?
+  createdAt       DateTime      @default(now())
+
+  affiliateLink   AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
+  affiliateLinkId String
+
+  user   User?  @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+model Earning {
+  id              String        @id @default(uuid())
+  amount          Float
+  status          EarningStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+
+  affiliateLink   AffiliateLink @relation(fields: [affiliateLinkId], references: [id], onDelete: Cascade)
+  affiliateLinkId String
+
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String        @unique
+}
+
+enum EarningStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  
+  product         Product  @relation(fields: [productId], references: [id])
+  productId       String
+
+  affiliateLink   AffiliateLink? @relation(fields: [affiliateLinkId], references: [id])
+  affiliateLinkId String?
+
+  amount           Float
+  vendorCommission Float   @default(0)
+  platformCommission Float @default(0)
+  merchantEarnings Float   @default(0)
+  
+  status          OrderStatus @default(PENDING)
+
+  createdAt       DateTime @default(now())
+  earning         Earning?
+}
