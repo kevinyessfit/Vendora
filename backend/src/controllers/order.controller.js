@@ -1,12 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import {
     sendNewOrderEmailToMerchant,
     sendOrderConfirmationToCustomer,
     sendCommissionEarnedToVendor,
     sendOrderStatusUpdateToCustomer,
 } from '../services/email.service.js';
-
-const prisma = new PrismaClient();
 
 const VALID_PAYMENT_METHODS = ['COD', 'MOBILE_MONEY', 'BANK_TRANSFER'];
 

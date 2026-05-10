@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { sendPayoutRequestNotification } from '../services/email.service.js';
-
-const prisma = new PrismaClient();
 
 // VENDOR: get own earnings summary + payout requests
 export const getMyEarnings = async (req, res) => {
