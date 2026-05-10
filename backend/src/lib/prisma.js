@@ -1,16 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 
-// Fix DATABASE_URL for serverless environments (Vercel + Supabase)
-// Handles: spaces in password, wrong pooler port, missing pgbouncer flag
+// Converts Supabase pooler URL → direct connection URL
+// Pooler: postgres.REF:PASS@aws-X.pooler.supabase.com:PORT/db  (can fail when project paused)
+// Direct: postgres:PASS@db.REF.supabase.co:5432/db             (more reliable)
 function fixDatabaseUrl(rawUrl) {
     if (!rawUrl) return rawUrl;
+
+    // Encode spaces in password
     let url = rawUrl.replace(/ /g, '%20');
-    if (url.includes('.pooler.supabase.com') && url.includes(':5432/')) {
-        url = url.replace(':5432/', ':6543/');
+
+    // Convert pooler URL to direct connection
+    const poolerMatch = url.match(
+        /^(postgresql|postgres):\/\/postgres\.([a-zA-Z0-9]+):([^@]+)@[^/]*pooler\.supabase\.com[^/]*\/(.+)$/
+    );
+    if (poolerMatch) {
+        const [, scheme, projectRef, password, dbName] = poolerMatch;
+        return `${scheme}://postgres:${password}@db.${projectRef}.supabase.co:5432/${dbName}`;
     }
-    if (url.includes('.pooler.supabase.com') && !url.includes('pgbouncer')) {
-        url += (url.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
-    }
+
     return url;
 }
 
