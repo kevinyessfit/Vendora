@@ -16,10 +16,10 @@ const HOW_IT_WORKS = [
 ];
 
 const STATS = [
-    { value: '10K+', label: 'Active Vendors' },
-    { value: '2.5K+', label: 'Products Listed' },
-    { value: '$1.2M+', label: 'Commissions Paid' },
     { value: '100%', label: 'Free Forever' },
+    { value: '60s', label: 'Quick Setup' },
+    { value: '0%', label: 'Vendor Fees' },
+    { value: '∞', label: 'Products to Promote' },
 ];
 
 function PublicNavbar() {
