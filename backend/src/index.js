@@ -69,6 +69,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vendora API is running' });
 });
 
+// Keep-alive ping — called daily by Vercel cron to prevent Supabase free tier from pausing
+app.get('/api/ping', async (req, res) => {
+  try {
+    const { default: prisma } = await import('./lib/prisma.js');
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', ts: new Date().toISOString() });
+  } catch {
+    res.status(500).json({ status: 'error' });
+  }
+});
+
 
 // 404 handler
 app.use((req, res) => {
