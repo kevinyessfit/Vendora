@@ -215,8 +215,8 @@ export default function Landing() {
                     <p className="text-sm text-gray-600">© 2026 Vendora. All rights reserved.</p>
                     <div className="flex gap-5 text-sm text-gray-500">
                         <Link to="/marketplace" className="hover:text-gray-300 transition-colors">Marketplace</Link>
-                        <Link to="/login" className="hover:text-gray-300 transition-colors">Login</Link>
-                        <Link to="/register" className="hover:text-gray-300 transition-colors">Sign Up</Link>
+                        <Link to="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
+                        <Link to="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
                     </div>
                 </div>
             </footer>

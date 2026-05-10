@@ -13,6 +13,15 @@ import payoutRoutes from './routes/payout.routes.js';
 dotenv.config();
 
 const app = express();
+
+// Sentry error tracking — activate by setting SENTRY_DSN in Vercel env vars
+if (process.env.SENTRY_DSN) {
+  try {
+    const Sentry = await import('@sentry/node');
+    Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV || 'production' });
+    app.use(Sentry.Handlers.requestHandler());
+  } catch { /* @sentry/node not installed — skip */ }
+}
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = [
