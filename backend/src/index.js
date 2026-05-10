@@ -47,6 +47,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vendora API is running' });
 });
 
+// Temporary DB debug (remove after fix)
+app.get('/api/debug-db', (req, res) => {
+  const raw = process.env.DATABASE_URL || '';
+  const masked = raw.replace(/:([^:@]{3})[^@]*@/, ':***@');
+  const hasPooler = raw.includes('.pooler.supabase.com');
+  const port = raw.match(/:(\d+)\//)?.[1];
+  res.json({ masked, hasPooler, port, hasPgbouncer: raw.includes('pgbouncer') });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
