@@ -106,13 +106,6 @@ export default function Login() {
                     </p>
                 </form>
 
-                {/* Demo hint */}
-                <div className="mt-4 card text-xs text-gray-500 space-y-1">
-                    <p className="font-medium text-gray-400">Demo credentials:</p>
-                    <p>Admin: <span className="text-gray-300">admin@vendora.com / admin123</span></p>
-                    <p>Merchant: <span className="text-gray-300">merchant@vendora.com / merchant123</span></p>
-                    <p>Vendor: <span className="text-gray-300">vendor@vendora.com / vendor123</span></p>
-                </div>
             </div>
         </div>
     );
