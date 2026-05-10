@@ -25,7 +25,7 @@ function Alert({ type, message }) {
 }
 
 export default function Settings() {
-    const { user, login } = useAuth();
+    const { user, updateUser } = useAuth();
 
     const [profile, setProfile] = useState({ name: user?.name || '', email: user?.email || '' });
     const [profileStatus, setProfileStatus] = useState({ loading: false, error: '', success: '' });
@@ -38,10 +38,7 @@ export default function Settings() {
         setProfileStatus({ loading: true, error: '', success: '' });
         try {
             const res = await api.put('/auth/profile', profile);
-            // Update local storage + context
-            const stored = JSON.parse(localStorage.getItem('vendora_user') || '{}');
-            const updated = { ...stored, ...res.data.user };
-            localStorage.setItem('vendora_user', JSON.stringify(updated));
+            updateUser(res.data.user);
             setProfileStatus({ loading: false, error: '', success: 'Profile updated successfully!' });
         } catch (err) {
             setProfileStatus({ loading: false, error: err.response?.data?.error || 'Update failed', success: '' });

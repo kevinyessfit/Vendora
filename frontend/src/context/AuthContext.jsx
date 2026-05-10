@@ -47,8 +47,16 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    const updateUser = (partial) => {
+        setUser(prev => {
+            const updated = { ...prev, ...partial };
+            localStorage.setItem('vendora_user', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );
