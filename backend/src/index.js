@@ -48,12 +48,20 @@ app.get('/api/health', (req, res) => {
 });
 
 // Temporary DB debug (remove after fix)
-app.get('/api/debug-db', (req, res) => {
+import prismaDebug from './lib/prisma.js';
+app.get('/api/debug-db', async (req, res) => {
   const raw = process.env.DATABASE_URL || '';
-  const masked = raw.replace(/:([^:@]{3})[^@]*@/, ':***@');
   const hasPooler = raw.includes('.pooler.supabase.com');
   const port = raw.match(/:(\d+)\//)?.[1];
-  res.json({ masked, hasPooler, port, hasPgbouncer: raw.includes('pgbouncer') });
+  // Test actual DB connectivity
+  let dbStatus = 'untested';
+  try {
+    await prismaDebug.$queryRaw`SELECT 1`;
+    dbStatus = 'connected';
+  } catch(e) {
+    dbStatus = e.message.split('\n')[0];
+  }
+  res.json({ hasPooler, port, hasPgbouncer: raw.includes('pgbouncer'), dbStatus });
 });
 
 // 404 handler
