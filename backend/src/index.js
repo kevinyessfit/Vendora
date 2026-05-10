@@ -48,20 +48,33 @@ app.get('/api/health', (req, res) => {
 });
 
 // Temporary DB debug (remove after fix)
-import prismaDebug from './lib/prisma.js';
 app.get('/api/debug-db', async (req, res) => {
   const raw = process.env.DATABASE_URL || '';
-  const hasPooler = raw.includes('.pooler.supabase.com');
-  const port = raw.match(/:(\d+)\//)?.[1];
-  // Test actual DB connectivity
-  let dbStatus = 'untested';
-  try {
-    await prismaDebug.$queryRaw`SELECT 1`;
-    dbStatus = 'connected';
-  } catch(e) {
-    dbStatus = e.message.split('\n')[0];
+  // Apply same fix as prisma.js
+  let fixed = raw.replace(/ /g, '%20');
+  if (fixed.includes('.pooler.supabase.com')) {
+    fixed = fixed.replace(/:5432\//, ':6543/');
+    if (!fixed.includes('pgbouncer')) fixed += (fixed.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
   }
-  res.json({ hasPooler, port, hasPgbouncer: raw.includes('pgbouncer'), dbStatus });
+  const info = {
+    rawPort: raw.match(/:(\d+)\//)?.[1],
+    fixedPort: fixed.match(/:(\d+)\//)?.[1],
+    hasSpaces: raw.includes(' '),
+    hasPooler: raw.includes('.pooler.supabase.com'),
+    fixedHasPgbouncer: fixed.includes('pgbouncer'),
+    fixedHost: fixed.match(/@([^:/]+)/)?.[1],
+  };
+  // Quick TCP test
+  const { createConnection } = await import('net');
+  const host = fixed.match(/@([^:/]+)/)?.[1];
+  const port = parseInt(fixed.match(/:(\d+)\//)?.[1] || '5432');
+  await new Promise(resolve => {
+    const conn = createConnection({ host, port, timeout: 5000 });
+    conn.on('connect', () => { info.tcpConnect = 'ok'; conn.destroy(); resolve(); });
+    conn.on('error', e => { info.tcpConnect = e.message; resolve(); });
+    conn.on('timeout', () => { info.tcpConnect = 'timeout'; conn.destroy(); resolve(); });
+  });
+  res.json(info);
 });
 
 // 404 handler
