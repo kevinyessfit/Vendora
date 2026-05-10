@@ -1,67 +1,85 @@
 import { PrismaClient } from '@prisma/client';
+import {
+    sendNewOrderEmailToMerchant,
+    sendOrderConfirmationToCustomer,
+    sendCommissionEarnedToVendor,
+    sendOrderStatusUpdateToCustomer,
+} from '../services/email.service.js';
 
 const prisma = new PrismaClient();
 
+const VALID_PAYMENT_METHODS = ['COD', 'MOBILE_MONEY', 'BANK_TRANSFER'];
+
 export const createOrder = async (req, res) => {
     try {
-        const { customerName, customerPhone, customerAddress, productId, affiliateCode } = req.body;
+        const { customerName, customerPhone, customerAddress, customerEmail, productId, affiliateCode, paymentMethod = 'COD' } = req.body;
 
         if (!customerName || !customerPhone || !customerAddress || !productId) {
             return res.status(400).json({ error: 'Missing required order details' });
         }
+        if (!VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+            return res.status(400).json({ error: 'Invalid payment method' });
+        }
 
-        const product = await prisma.product.findUnique({ where: { id: productId } });
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: { merchant: { select: { id: true, name: true, email: true } } },
+        });
         if (!product || !product.isActive) {
             return res.status(404).json({ error: 'Product not found or inactive' });
         }
 
         let affiliateLinkId = null;
+        let affiliateVendor = null;
         let vendorCommission = 0;
         let platformCommission = product.price * (product.platformCommission / 100);
-
-        // Default Merchant keeps everything minus the platform fee
         let merchantEarnings = product.price - platformCommission;
 
-        // If an affiliate code is provided, look up the link
         if (affiliateCode) {
-            const link = await prisma.affiliateLink.findUnique({ where: { code: affiliateCode } });
+            const link = await prisma.affiliateLink.findUnique({
+                where: { code: affiliateCode },
+                include: { vendor: { select: { id: true, name: true, email: true } } },
+            });
             if (link) {
                 affiliateLinkId = link.id;
+                affiliateVendor = link.vendor;
                 vendorCommission = product.price * (product.commissionPct / 100);
-                // Subtract vendor commission from merchant earnings
                 merchantEarnings -= vendorCommission;
             }
         }
 
-        // Create the order and the earning (if applicable) in a transaction
         const result = await prisma.$transaction(async (tx) => {
             const order = await tx.order.create({
                 data: {
                     customerName,
                     customerPhone,
                     customerAddress,
+                    customerEmail: customerEmail || null,
                     productId: product.id,
                     amount: product.price,
                     vendorCommission,
                     platformCommission,
                     merchantEarnings,
-                    affiliateLinkId
+                    paymentMethod,
+                    affiliateLinkId,
                 }
             });
 
             if (affiliateLinkId && vendorCommission > 0) {
                 await tx.earning.create({
-                    data: {
-                        amount: vendorCommission,
-                        affiliateLinkId,
-                        status: 'PENDING',
-                        orderId: order.id
-                    }
+                    data: { amount: vendorCommission, affiliateLinkId, status: 'PENDING', orderId: order.id }
                 });
             }
 
             return order;
         });
+
+        // Fire emails in background (non-blocking)
+        sendNewOrderEmailToMerchant({ merchant: product.merchant, order: result, product }).catch(() => {});
+        sendOrderConfirmationToCustomer({ customerEmail, customerName, order: result, product }).catch(() => {});
+        if (affiliateVendor && vendorCommission > 0) {
+            sendCommissionEarnedToVendor({ vendor: affiliateVendor, product, amount: vendorCommission }).catch(() => {});
+        }
 
         res.status(201).json({ message: 'Order placed successfully', orderId: result.id });
     } catch (err) {
@@ -135,7 +153,7 @@ export const updateOrderStatus = async (req, res) => {
 
         const order = await prisma.order.findUnique({
             where: { id },
-            include: { product: true }
+            include: { product: { include: { merchant: { select: { id: true } } } } }
         });
 
         if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -167,6 +185,16 @@ export const updateOrderStatus = async (req, res) => {
 
             return updatedOrder;
         });
+
+        // Notify customer of status change
+        if (order.customerEmail) {
+            sendOrderStatusUpdateToCustomer({
+                customerEmail: order.customerEmail,
+                customerName: order.customerName,
+                order: result,
+                product: order.product,
+            }).catch(() => {});
+        }
 
         res.json(result);
     } catch (err) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { Users, Package, Link2, MousePointerClick, Trash2, ToggleLeft, ToggleRight, Shield, ShoppingCart } from 'lucide-react';
+import { Users, Package, Link2, MousePointerClick, Trash2, ToggleLeft, ToggleRight, Shield, ShoppingCart, DollarSign, TrendingUp, Wallet, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color }) {
     return (
@@ -19,25 +19,38 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [payouts, setPayouts] = useState([]);
     const [tab, setTab] = useState('overview');
     const [loading, setLoading] = useState(true);
 
     const fetchAll = async () => {
         try {
-            const [statsRes, usersRes, productsRes, ordersRes] = await Promise.all([
+            const [statsRes, usersRes, productsRes, ordersRes, payoutsRes] = await Promise.all([
                 api.get('/admin/stats'),
                 api.get('/admin/users'),
                 api.get('/admin/products'),
                 api.get('/orders/all'),
+                api.get('/payouts/all'),
             ]);
             setStats(statsRes.data);
             setUsers(usersRes.data);
             setProducts(productsRes.data);
             setOrders(ordersRes.data);
+            setPayouts(payoutsRes.data);
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleProcessPayout = async (id, status) => {
+        const note = status === 'REJECTED' ? prompt('Reason for rejection (optional):') : null;
+        try {
+            const res = await api.patch(`/payouts/${id}/process`, { status, note });
+            setPayouts(p => p.map(x => x.id === id ? { ...x, ...res.data } : x));
+        } catch (e) {
+            alert(e.response?.data?.error || 'Failed to process payout');
         }
     };
 
@@ -76,7 +89,7 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-6">
             <div className="flex gap-1 p-1 bg-gray-900 rounded-xl border border-gray-800 w-fit">
-                {[['overview', 'Overview', Shield], ['users', 'Users', Users], ['products', 'Products', Package], ['orders', 'Orders', ShoppingCart]].map(([id, label, Icon]) => (
+                {[['overview', 'Overview', Shield], ['users', 'Users', Users], ['products', 'Products', Package], ['orders', 'Orders', ShoppingCart], ['payouts', 'Payouts', Wallet]].map(([id, label, Icon]) => (
                     <button
                         key={id}
                         onClick={() => setTab(id)}
@@ -90,12 +103,19 @@ export default function AdminDashboard() {
             </div>
 
             {tab === 'overview' && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="bg-gradient-to-br from-primary-600 to-primary-500" />
-                    <StatCard label="Merchants" value={stats.merchants} icon={Package} color="bg-gradient-to-br from-blue-600 to-blue-500" />
-                    <StatCard label="Vendors" value={stats.vendors} icon={Link2} color="bg-gradient-to-br from-purple-600 to-purple-500" />
-                    <StatCard label="Products" value={stats.totalProducts} icon={Package} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
-                    <StatCard label="Clicks" value={stats.totalClicks} icon={MousePointerClick} color="bg-gradient-to-br from-amber-600 to-amber-500" />
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <StatCard label="Total Revenue" value={`$${(stats.totalRevenue || 0).toFixed(2)}`} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
+                        <StatCard label="Platform Revenue" value={`$${(stats.platformRevenue || 0).toFixed(2)}`} icon={TrendingUp} color="bg-gradient-to-br from-primary-600 to-primary-500" />
+                        <StatCard label="Commissions Paid" value={`$${(stats.totalCommissions || 0).toFixed(2)}`} icon={Link2} color="bg-gradient-to-br from-purple-600 to-purple-500" />
+                        <StatCard label="Total Orders" value={stats.totalOrders || 0} icon={ShoppingCart} color="bg-gradient-to-br from-blue-600 to-blue-500" />
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <StatCard label="Total Users" value={stats.totalUsers || 0} icon={Users} color="bg-gradient-to-br from-gray-600 to-gray-500" />
+                        <StatCard label="Merchants" value={stats.merchants || 0} icon={Package} color="bg-gradient-to-br from-blue-600 to-blue-500" />
+                        <StatCard label="Vendors" value={stats.vendors || 0} icon={Link2} color="bg-gradient-to-br from-purple-600 to-purple-500" />
+                        <StatCard label="Clicks" value={stats.totalClicks || 0} icon={MousePointerClick} color="bg-gradient-to-br from-amber-600 to-amber-500" />
+                    </div>
                 </div>
             )}
 
@@ -224,6 +244,90 @@ export default function AdminDashboard() {
                                                 <option value="COMPLETED">Completed</option>
                                                 <option value="CANCELLED">Cancelled</option>
                                             </select>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {tab === 'payouts' && (
+                <div className="card overflow-hidden p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-800 text-gray-500 text-left">
+                                    <th className="px-5 py-4 font-medium">Vendor</th>
+                                    <th className="px-5 py-4 font-medium">Amount</th>
+                                    <th className="px-5 py-4 font-medium">Method</th>
+                                    <th className="px-5 py-4 font-medium">Details</th>
+                                    <th className="px-5 py-4 font-medium">Requested</th>
+                                    <th className="px-5 py-4 font-medium text-center">Status</th>
+                                    <th className="px-5 py-4 font-medium text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-800">
+                                {payouts.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-5 py-12 text-center text-gray-500">
+                                            <Wallet size={36} className="mx-auto mb-2 opacity-20" />
+                                            No payout requests yet
+                                        </td>
+                                    </tr>
+                                ) : payouts.map(p => (
+                                    <tr key={p.id} className="hover:bg-gray-800/50 transition-colors">
+                                        <td className="px-5 py-3">
+                                            <p className="font-medium text-gray-200">{p.vendor.name}</p>
+                                            <p className="text-xs text-gray-500">{p.vendor.email}</p>
+                                        </td>
+                                        <td className="px-5 py-3 font-bold text-emerald-400">${p.amount.toFixed(2)}</td>
+                                        <td className="px-5 py-3 text-gray-300">{p.method}</td>
+                                        <td className="px-5 py-3 text-gray-400 max-w-[160px] truncate" title={p.details}>{p.details}</td>
+                                        <td className="px-5 py-3 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
+                                        <td className="px-5 py-3 text-center">
+                                            <span className={`text-xs px-2 py-1 rounded-full font-medium border ${
+                                                p.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                p.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                p.status === 'PROCESSING' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                            }`}>{p.status}</span>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {p.status === 'PENDING' && (
+                                                <div className="flex gap-2 justify-center">
+                                                    <button onClick={() => handleProcessPayout(p.id, 'PROCESSING')}
+                                                        className="p-1.5 text-blue-400 hover:text-blue-300 transition-colors" title="Mark as Processing">
+                                                        <Clock size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleProcessPayout(p.id, 'PAID')}
+                                                        className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
+                                                        <CheckCircle size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleProcessPayout(p.id, 'REJECTED')}
+                                                        className="p-1.5 text-red-400 hover:text-red-300 transition-colors" title="Reject">
+                                                        <XCircle size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {p.status === 'PROCESSING' && (
+                                                <div className="flex gap-2 justify-center">
+                                                    <button onClick={() => handleProcessPayout(p.id, 'PAID')}
+                                                        className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
+                                                        <CheckCircle size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleProcessPayout(p.id, 'REJECTED')}
+                                                        className="p-1.5 text-red-400 hover:text-red-300 transition-colors" title="Reject">
+                                                        <XCircle size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {(p.status === 'PAID' || p.status === 'REJECTED') && (
+                                                <p className="text-xs text-gray-600 text-center">
+                                                    {p.note || '—'}
+                                                </p>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

@@ -18,6 +18,23 @@ export const getProducts = async (req, res) => {
     }
 };
 
+export const getProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                merchant: { select: { id: true, name: true, email: true } },
+                _count: { select: { affiliateLinks: true } }
+            }
+        });
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        res.json(product);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 export const getMyProducts = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
@@ -73,13 +90,16 @@ export const updateProduct = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized' });
         }
 
-        const updateData = { ...req.body };
-        // Clean up fields specifically in FormData
-        if (updateData.price) updateData.price = parseFloat(updateData.price);
-        if (updateData.commissionPct) updateData.commissionPct = parseFloat(updateData.commissionPct);
-
+        const { title, description, price, commissionPct, imageUrl: bodyImageUrl } = req.body;
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (price !== undefined) updateData.price = parseFloat(price);
+        if (commissionPct !== undefined) updateData.commissionPct = parseFloat(commissionPct);
         if (req.file) {
             updateData.imageUrl = req.file.path;
+        } else if (bodyImageUrl !== undefined) {
+            updateData.imageUrl = bodyImageUrl;
         }
 
         const updated = await prisma.product.update({

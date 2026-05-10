@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 import {
     ShoppingBag, ArrowLeft, DollarSign, TrendingUp, Users, Link2,
-    Copy, CheckCheck, ExternalLink, Package, Tag, ChevronRight, Zap,
+    Copy, CheckCheck, ExternalLink, Package, Tag, ChevronRight, Zap, Share2,
 } from 'lucide-react';
 
 function PublicNavbar() {
@@ -43,8 +43,14 @@ function CopyButton({ text, label = 'Copy Link' }) {
     );
 }
 
+const PAYMENT_METHODS = [
+    { value: 'COD', label: '💵 Cash on Delivery', desc: 'Pay when your order arrives' },
+    { value: 'MOBILE_MONEY', label: '📱 Mobile Money', desc: 'Orange Money, Wave, MTN...' },
+    { value: 'BANK_TRANSFER', label: '🏦 Bank Transfer', desc: 'The merchant will send you details' },
+];
+
 function OrderModal({ product, affiliateCode, onClose }) {
-    const [form, setForm] = useState({ name: '', phone: '', address: '' });
+    const [form, setForm] = useState({ name: '', phone: '', address: '', email: '', paymentMethod: 'COD' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -59,7 +65,9 @@ function OrderModal({ product, affiliateCode, onClose }) {
                 affiliateCode,
                 customerName: form.name,
                 customerPhone: form.phone,
-                customerAddress: form.address
+                customerAddress: form.address,
+                customerEmail: form.email || undefined,
+                paymentMethod: form.paymentMethod,
             });
             setSuccess(true);
         } catch (err) {
@@ -77,7 +85,8 @@ function OrderModal({ product, affiliateCode, onClose }) {
                         <CheckCheck size={32} className="text-emerald-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Order Confirmed!</h2>
-                    <p className="text-gray-400 mb-6">Thank you for your purchase.</p>
+                    <p className="text-gray-400 mb-2">Thank you! The merchant will contact you shortly.</p>
+                    {form.email && <p className="text-xs text-gray-500 mb-6">A confirmation has been sent to {form.email}</p>}
                     <button onClick={onClose} className="btn-primary w-full">Continue Browsing</button>
                 </div>
             </div>
@@ -85,10 +94,10 @@ function OrderModal({ product, affiliateCode, onClose }) {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="card w-full max-w-md">
-                <h2 className="text-2xl font-bold text-white mb-2">Secure Checkout</h2>
-                <p className="text-sm text-gray-500 mb-5">Buying: {product.title} (${product.price.toFixed(2)})</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+            <div className="card w-full max-w-md my-4">
+                <h2 className="text-2xl font-bold text-white mb-1">Checkout</h2>
+                <p className="text-sm text-gray-500 mb-5">{product.title} — <span className="text-emerald-400 font-semibold">${product.price.toFixed(2)}</span></p>
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -97,16 +106,40 @@ function OrderModal({ product, affiliateCode, onClose }) {
                     </div>
                     <div>
                         <label className="label">Phone Number</label>
-                        <input className="input" required type="tel" value={form.phone} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} placeholder="(555) 123-4567" />
+                        <input className="input" required type="tel" value={form.phone} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} placeholder="+1 555 123-4567" />
+                    </div>
+                    <div>
+                        <label className="label">Email <span className="text-gray-600 font-normal">(optional — for order confirmation)</span></label>
+                        <input className="input" type="email" value={form.email} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} placeholder="you@example.com" />
                     </div>
                     <div>
                         <label className="label">Delivery Address</label>
-                        <textarea className="input resize-none h-24" required value={form.address} onChange={e => setForm(s => ({ ...s, address: e.target.value }))} placeholder="123 Main St..." />
+                        <textarea className="input resize-none h-20" required value={form.address} onChange={e => setForm(s => ({ ...s, address: e.target.value }))} placeholder="123 Main St, City..." />
+                    </div>
+                    <div>
+                        <label className="label">Payment Method</label>
+                        <div className="space-y-2">
+                            {PAYMENT_METHODS.map(m => (
+                                <label key={m.value} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.paymentMethod === m.value ? 'border-primary-500/60 bg-primary-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
+                                    <input type="radio" name="paymentMethod" value={m.value} checked={form.paymentMethod === m.value}
+                                        onChange={e => setForm(s => ({ ...s, paymentMethod: e.target.value }))} className="accent-primary-500" />
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-100">{m.label}</p>
+                                        <p className="text-xs text-gray-500">{m.desc}</p>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                        {form.paymentMethod !== 'COD' && (
+                            <p className="text-xs text-amber-400 mt-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                                The merchant will contact you with {form.paymentMethod === 'MOBILE_MONEY' ? 'their mobile money number' : 'bank transfer details'} after receiving your order.
+                            </p>
+                        )}
                     </div>
                     <div className="flex gap-3 pt-2">
                         <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-                        <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white">
-                            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Complete Order'}
+                        <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500">
+                            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : `Order — $${product.price.toFixed(2)}`}
                         </button>
                     </div>
                 </form>
@@ -130,11 +163,8 @@ export default function ProductPage() {
     const refCode = searchParams.get('ref');
 
     useEffect(() => {
-        api.get('/products')
-            .then(r => {
-                const p = r.data.find(x => x.id === id);
-                setProduct(p || null);
-            })
+        api.get(`/products/${id}`)
+            .then(r => setProduct(r.data))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [id]);
@@ -170,6 +200,11 @@ export default function ProductPage() {
     };
 
     const affiliateUrl = myLink ? `${window.location.origin}/go/${myLink.code}` : null;
+
+    const shareOnWhatsApp = (url) => {
+        const msg = `🛍️ *${product.title}*\n\n${product.description.slice(0, 100)}...\n\n💰 Prix: $${product.price.toFixed(2)} — Commandez ici:\n${url}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    };
 
     if (loading) {
         return (
@@ -263,10 +298,16 @@ export default function ProductPage() {
 
                         {/* Buy Button */}
                         <div className="mb-6">
-                            <button onClick={() => setShowOrderModal(true)} className="btn-primary w-full py-4 text-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20">
-                                <ShoppingBag size={20} /> Order Now — ${product.price.toFixed(2)}
-                            </button>
-                            {refCode && <p className="text-xs text-center text-gray-500 mt-2">You were referred to this product</p>}
+                            {product.isActive ? (
+                                <button onClick={() => setShowOrderModal(true)} className="btn-primary w-full py-4 text-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20">
+                                    <ShoppingBag size={20} /> Order Now — ${product.price.toFixed(2)}
+                                </button>
+                            ) : (
+                                <div className="w-full py-4 rounded-xl bg-gray-800/60 border border-gray-700 text-gray-500 text-center font-semibold">
+                                    Product currently unavailable
+                                </div>
+                            )}
+                            {refCode && product.isActive && <p className="text-xs text-center text-gray-500 mt-2">You were referred to this product</p>}
                         </div>
 
                         {/* CTA section */}
@@ -294,10 +335,16 @@ export default function ProductPage() {
                                             <p className="text-xs text-gray-500">{myLink._count?.clicks || 0} clicks recorded</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 bg-gray-800 rounded-xl px-4 py-3 mb-4">
+                                    <div className="flex items-center gap-2 bg-gray-800 rounded-xl px-4 py-3 mb-3">
                                         <code className="text-xs text-primary-400 flex-1 truncate">{affiliateUrl}</code>
                                         <CopyButton text={affiliateUrl} />
                                     </div>
+                                    <button
+                                        onClick={() => shareOnWhatsApp(affiliateUrl)}
+                                        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 text-sm font-semibold transition-all mb-3"
+                                    >
+                                        <Share2 size={15} /> Partager sur WhatsApp
+                                    </button>
                                     <Link to="/dashboard" className="text-sm text-primary-400 hover:text-primary-300 flex items-center gap-1">
                                         View all your links <ChevronRight size={14} />
                                     </Link>

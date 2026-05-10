@@ -30,15 +30,30 @@ export const deleteUser = async (req, res) => {
 
 export const getPlatformStats = async (req, res) => {
     try {
-        const [users, products, links, clicks] = await Promise.all([
+        const [
+            users, merchants, vendors,
+            products, links, clicks,
+            totalOrders, revenue, platformRevenue, commissions,
+        ] = await Promise.all([
             prisma.user.count(),
+            prisma.user.count({ where: { role: 'MERCHANT' } }),
+            prisma.user.count({ where: { role: 'VENDOR' } }),
             prisma.product.count(),
             prisma.affiliateLink.count(),
             prisma.click.count(),
+            prisma.order.count(),
+            prisma.order.aggregate({ _sum: { amount: true } }),
+            prisma.order.aggregate({ _sum: { platformCommission: true } }),
+            prisma.earning.aggregate({ _sum: { amount: true } }),
         ]);
-        const merchants = await prisma.user.count({ where: { role: 'MERCHANT' } });
-        const vendors = await prisma.user.count({ where: { role: 'VENDOR' } });
-        res.json({ totalUsers: users, merchants, vendors, totalProducts: products, totalLinks: links, totalClicks: clicks });
+        res.json({
+            totalUsers: users, merchants, vendors,
+            totalProducts: products, totalLinks: links, totalClicks: clicks,
+            totalOrders,
+            totalRevenue: revenue._sum.amount || 0,
+            platformRevenue: platformRevenue._sum.platformCommission || 0,
+            totalCommissions: commissions._sum.amount || 0,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingBag, LayoutDashboard, LogOut, Shield, Link2, Store } from 'lucide-react';
+import { ShoppingBag, LayoutDashboard, LogOut, Shield, Link2, Store, Settings } from 'lucide-react';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -39,14 +39,20 @@ export default function Navbar() {
                     </Link>
 
                     {/* Nav links */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-5">
                         <Link
                             to="/dashboard"
-                            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname === '/dashboard' ? 'text-primary-400' : 'text-gray-400 hover:text-gray-100'
-                                }`}
+                            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname === '/dashboard' ? 'text-primary-400' : 'text-gray-400 hover:text-gray-100'}`}
                         >
                             <LayoutDashboard size={16} />
-                            Dashboard
+                            <span className="hidden sm:inline">Dashboard</span>
+                        </Link>
+                        <Link
+                            to="/settings"
+                            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname === '/settings' ? 'text-primary-400' : 'text-gray-400 hover:text-gray-100'}`}
+                        >
+                            <Settings size={16} />
+                            <span className="hidden sm:inline">Settings</span>
                         </Link>
                     </div>
 

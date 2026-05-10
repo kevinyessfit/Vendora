@@ -1,6 +1,74 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { PlusCircle, Package, TrendingUp, Users, Edit2, Trash2, X, DollarSign, ShoppingCart, Calendar } from 'lucide-react';
+import { PlusCircle, Package, TrendingUp, Users, Edit2, Trash2, X, DollarSign, ShoppingCart, Calendar, Phone, MapPin, Mail, CreditCard, Eye } from 'lucide-react';
+
+const PAYMENT_LABELS = { COD: 'Cash on Delivery', MOBILE_MONEY: 'Mobile Money', BANK_TRANSFER: 'Bank Transfer' };
+
+function OrderDetailModal({ order, onClose }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="card w-full max-w-md relative">
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
+                <h2 className="text-xl font-bold text-white mb-1">Order Details</h2>
+                <p className="text-xs text-gray-500 mb-5 font-mono">#{order.id.split('-')[0].toUpperCase()} · {new Date(order.createdAt).toLocaleString()}</p>
+
+                <div className="space-y-4">
+                    {/* Customer info */}
+                    <div className="bg-gray-800/60 rounded-xl p-4 space-y-2">
+                        <p className="text-xs text-gray-500 uppercase font-semibold tracking-wide mb-3">Customer</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                            <Users size={14} className="text-gray-500 shrink-0" />
+                            <span className="font-medium">{order.customerName}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                            <Phone size={14} className="text-gray-500 shrink-0" />
+                            <a href={`tel:${order.customerPhone}`} className="hover:text-primary-400 transition-colors">{order.customerPhone}</a>
+                        </div>
+                        {order.customerEmail && (
+                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                                <Mail size={14} className="text-gray-500 shrink-0" />
+                                <a href={`mailto:${order.customerEmail}`} className="hover:text-primary-400 transition-colors">{order.customerEmail}</a>
+                            </div>
+                        )}
+                        <div className="flex items-start gap-2 text-sm text-gray-300">
+                            <MapPin size={14} className="text-gray-500 shrink-0 mt-0.5" />
+                            <span>{order.customerAddress}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                            <CreditCard size={14} className="text-gray-500 shrink-0" />
+                            <span>{PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod || 'Cash on Delivery'}</span>
+                        </div>
+                    </div>
+
+                    {/* Financial breakdown */}
+                    <div className="bg-gray-800/60 rounded-xl p-4">
+                        <p className="text-xs text-gray-500 uppercase font-semibold tracking-wide mb-3">Breakdown</p>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between text-gray-400">
+                                <span>Order total</span>
+                                <span className="text-gray-200 font-medium">${order.amount.toFixed(2)}</span>
+                            </div>
+                            {order.vendorCommission > 0 && (
+                                <div className="flex justify-between text-gray-400">
+                                    <span>Affiliate commission</span>
+                                    <span className="text-red-400">-${order.vendorCommission.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between text-gray-400">
+                                <span>Platform fee</span>
+                                <span className="text-red-400">-${order.platformCommission.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold border-t border-gray-700 pt-2 mt-1">
+                                <span className="text-gray-200">Your earnings</span>
+                                <span className="text-emerald-400">${order.merchantEarnings.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function StatCard({ label, value, icon: Icon, color }) {
     return (
@@ -120,6 +188,7 @@ export default function MerchantDashboard() {
     const [loading, setLoading] = useState(true);
     const [modalProduct, setModalProduct] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [tab, setTab] = useState('products');
 
     const fetchData = async () => {
@@ -247,14 +316,13 @@ export default function MerchantDashboard() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-gray-800 bg-gray-900/50 text-sm text-gray-400">
-                                    <th className="p-4 font-medium">Order details</th>
+                                    <th className="p-4 font-medium">Customer</th>
                                     <th className="p-4 font-medium">Product</th>
                                     <th className="p-4 font-medium">Affiliate</th>
-                                    <th className="p-4 font-medium text-right">Order Total</th>
-                                    <th className="p-4 font-medium text-right">Vendor Cut</th>
-                                    <th className="p-4 font-medium text-right">Platform Cut</th>
-                                    <th className="p-4 font-medium text-right">Your Net Earnings</th>
+                                    <th className="p-4 font-medium text-right">Total</th>
+                                    <th className="p-4 font-medium text-right">Your Earnings</th>
                                     <th className="p-4 font-medium text-right">Status</th>
+                                    <th className="p-4 font-medium"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800 text-sm">
@@ -262,17 +330,16 @@ export default function MerchantDashboard() {
                                     <tr key={order.id} className="hover:bg-gray-800/30 transition-colors">
                                         <td className="p-4">
                                             <p className="font-semibold text-gray-200">{order.customerName}</p>
-                                            <p className="text-xs text-gray-500 truncate max-w-[150px]" title={order.id}>#{order.id.split('-')[0]}</p>
+                                            <p className="text-xs text-gray-500 font-mono">#{order.id.split('-')[0].toUpperCase()}</p>
+                                            <p className="text-xs text-gray-600 mt-0.5">{PAYMENT_LABELS[order.paymentMethod] || 'COD'}</p>
                                         </td>
                                         <td className="p-4 text-gray-300">{order.product.title}</td>
                                         <td className="p-4">
                                             {order.affiliateLink ? (
                                                 <span className="badge-vendor truncate max-w-[120px] font-mono inline-block">Ref: {order.affiliateLink.vendor.name}</span>
-                                            ) : <span className="text-gray-600 text-xs italic">Direct (No affiliate)</span>}
+                                            ) : <span className="text-gray-600 text-xs italic">Direct</span>}
                                         </td>
                                         <td className="p-4 text-right font-medium text-gray-300">${order.amount.toFixed(2)}</td>
-                                        <td className="p-4 text-right text-gray-400">-${order.vendorCommission.toFixed(2)}</td>
-                                        <td className="p-4 text-right text-gray-400">-${order.platformCommission.toFixed(2)}</td>
                                         <td className="p-4 text-right font-bold text-emerald-400">${order.merchantEarnings.toFixed(2)}</td>
                                         <td className="p-4 text-right">
                                             <select
@@ -287,6 +354,11 @@ export default function MerchantDashboard() {
                                                 <option value="CANCELLED">Cancelled</option>
                                             </select>
                                         </td>
+                                        <td className="p-4">
+                                            <button onClick={() => setSelectedOrder(order)} className="p-1.5 text-gray-500 hover:text-primary-400 transition-colors" title="View details">
+                                                <Eye size={15} />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -296,6 +368,7 @@ export default function MerchantDashboard() {
             )}
 
             {showModal && <ProductModal product={modalProduct} onClose={() => setShowModal(false)} onSaved={onSaved} />}
+            {selectedOrder && <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
         </div>
     );
 }

@@ -31,6 +31,18 @@ const SORT_OPTIONS = [
     { value: 'commission', label: 'Highest Commission' },
 ];
 
+const PAGE_SIZE = 12;
+
+function getPaginationRange(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const range = [1];
+    if (current > 3) range.push('...');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) range.push(i);
+    if (current < total - 2) range.push('...');
+    range.push(total);
+    return range;
+}
+
 export default function Marketplace() {
     const [products, setProducts] = useState([]);
     const [filtered, setFiltered] = useState([]);
@@ -38,6 +50,7 @@ export default function Marketplace() {
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState('newest');
     const [minComm, setMinComm] = useState(0);
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
         api.get('/products')
@@ -62,7 +75,11 @@ export default function Marketplace() {
         else if (sort === 'commission') result.sort((a, b) => b.commissionPct - a.commissionPct);
         else result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setFiltered(result);
+        setPage(1);
     }, [search, sort, minComm, products]);
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
         <div className="min-h-screen">
@@ -138,9 +155,12 @@ export default function Marketplace() {
                         </div>
                     ) : (
                         <>
-                            <p className="text-sm text-gray-500 mb-5">{filtered.length} product{filtered.length !== 1 ? 's' : ''} found</p>
+                            <p className="text-sm text-gray-500 mb-5">
+                                {filtered.length} product{filtered.length !== 1 ? 's' : ''} found
+                                {totalPages > 1 && ` · Page ${page} of ${totalPages}`}
+                            </p>
                             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                                {filtered.map(product => (
+                                {paginated.map(product => (
                                     <Link
                                         key={product.id}
                                         to={`/products/${product.id}`}
@@ -186,6 +206,41 @@ export default function Marketplace() {
                                     </Link>
                                 ))}
                             </div>
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 mt-10">
+                                    <button
+                                        onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                        disabled={page === 1}
+                                        className="btn-secondary py-2 px-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        ← Prev
+                                    </button>
+                                    <div className="flex gap-1">
+                                        {getPaginationRange(page, totalPages).map((p, i) =>
+                                            p === '...'
+                                                ? <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-600 text-sm">…</span>
+                                                : (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${p === page ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'}`}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                )
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                        disabled={page === totalPages}
+                                        className="btn-secondary py-2 px-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        Next →
+                                    </button>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
