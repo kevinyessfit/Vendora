@@ -28,6 +28,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://frontend-blond-pi-63.vercel.app',
+  'https://vendora.store',
+  'https://www.vendora.store',
   ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
 ];
 
