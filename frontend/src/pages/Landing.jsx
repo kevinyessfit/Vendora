@@ -55,10 +55,10 @@ export default function Landing() {
 
             {/* Hero */}
             <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-                {/* Background */}
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-b from-primary-600/20 via-accent-500/10 to-transparent rounded-full blur-[120px]" />
-                    <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-accent-500/10 rounded-full blur-[100px]" />
+                {/* Background — animated aurora */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="aurora absolute -inset-[25%] opacity-40 blur-[90px] will-change-[background-position]" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-950" />
                 </div>
 
                 <div className="max-w-5xl mx-auto text-center relative z-10">

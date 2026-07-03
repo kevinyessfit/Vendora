@@ -27,9 +27,10 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-            {/* Background gradient blobs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary-600/20 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-accent-500/20 rounded-full blur-[120px] pointer-events-none" />
+            {/* Background — animated aurora */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="aurora absolute -inset-[25%] opacity-30 blur-[90px]" />
+            </div>
 
             <div className="w-full max-w-md relative z-10">
                 {/* Logo */}
