@@ -149,8 +149,8 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="px-5 py-3">
                                             {user.role !== 'ADMIN' && (
-                                                <button onClick={() => handleDeleteUser(user.id)} className="btn-danger text-xs py-1 px-2">
-                                                    <Trash2 size={13} />
+                                                <button onClick={() => handleDeleteUser(user.id)} aria-label={`Delete user ${user.name}`} className="btn-danger text-xs min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
+                                                    <Trash2 size={16} />
                                                 </button>
                                             )}
                                         </td>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3">
-                                            <button onClick={() => handleToggleProduct(p.id)} className="text-gray-500 hover:text-primary-400 transition-colors">
+                                            <button onClick={() => handleToggleProduct(p.id)} aria-label={p.isActive ? `Deactivate ${p.title}` : `Activate ${p.title}`} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-gray-500 hover:text-primary-400 transition-colors">
                                                 {p.isActive ? <ToggleRight size={20} className="text-emerald-400" /> : <ToggleLeft size={20} />}
                                             </button>
                                         </td>
@@ -234,6 +234,7 @@ export default function AdminDashboard() {
                                         <td className="px-5 py-3 text-right font-medium text-gray-300">${order.amount.toFixed(2)}</td>
                                         <td className="px-5 py-3 text-right">
                                             <select
+                                                aria-label={`Order status for ${order.customerName}`}
                                                 className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded px-2 py-1 outline-none"
                                                 value={order.status || 'PENDING'}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -298,15 +299,18 @@ export default function AdminDashboard() {
                                             {p.status === 'PENDING' && (
                                                 <div className="flex gap-2 justify-center">
                                                     <button onClick={() => handleProcessPayout(p.id, 'PROCESSING')}
-                                                        className="p-1.5 text-blue-400 hover:text-blue-300 transition-colors" title="Mark as Processing">
+                                                        aria-label="Mark payout as processing"
+                                                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-blue-400 hover:text-blue-300 transition-colors" title="Mark as Processing">
                                                         <Clock size={16} />
                                                     </button>
                                                     <button onClick={() => handleProcessPayout(p.id, 'PAID')}
-                                                        className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
+                                                        aria-label="Mark payout as paid"
+                                                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
                                                         <CheckCircle size={16} />
                                                     </button>
                                                     <button onClick={() => handleProcessPayout(p.id, 'REJECTED')}
-                                                        className="p-1.5 text-red-400 hover:text-red-300 transition-colors" title="Reject">
+                                                        aria-label="Reject payout"
+                                                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-red-400 hover:text-red-300 transition-colors" title="Reject">
                                                         <XCircle size={16} />
                                                     </button>
                                                 </div>
@@ -314,11 +318,13 @@ export default function AdminDashboard() {
                                             {p.status === 'PROCESSING' && (
                                                 <div className="flex gap-2 justify-center">
                                                     <button onClick={() => handleProcessPayout(p.id, 'PAID')}
-                                                        className="p-1.5 text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
+                                                        aria-label="Mark payout as paid"
+                                                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-emerald-400 hover:text-emerald-300 transition-colors" title="Mark as Paid">
                                                         <CheckCircle size={16} />
                                                     </button>
                                                     <button onClick={() => handleProcessPayout(p.id, 'REJECTED')}
-                                                        className="p-1.5 text-red-400 hover:text-red-300 transition-colors" title="Reject">
+                                                        aria-label="Reject payout"
+                                                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-red-400 hover:text-red-300 transition-colors" title="Reject">
                                                         <XCircle size={16} />
                                                     </button>
                                                 </div>

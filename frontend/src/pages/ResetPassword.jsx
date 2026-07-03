@@ -74,11 +74,13 @@ export default function ResetPassword() {
                             </div>
                         )}
                         <div>
-                            <label className="label">New password</label>
+                            <label htmlFor="password" className="label">New password</label>
                             <div className="relative">
                                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                                 <input
+                                    id="password"
                                     type={showPass ? 'text' : 'password'}
+                                    autoComplete="new-password"
                                     className="input pl-10 pr-10"
                                     placeholder="••••••••"
                                     value={form.password}
@@ -86,17 +88,20 @@ export default function ResetPassword() {
                                     required
                                 />
                                 <button type="button" onClick={() => setShowPass(!showPass)}
+                                    aria-label={showPass ? 'Hide password' : 'Show password'}
                                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
                         <div>
-                            <label className="label">Confirm password</label>
+                            <label htmlFor="confirm" className="label">Confirm password</label>
                             <div className="relative">
                                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                                 <input
+                                    id="confirm"
                                     type="password"
+                                    autoComplete="new-password"
                                     className="input pl-10"
                                     placeholder="••••••••"
                                     value={form.confirm}

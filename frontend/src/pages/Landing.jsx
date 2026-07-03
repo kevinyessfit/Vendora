@@ -99,7 +99,7 @@ export default function Landing() {
                         ].map((p, i) => (
                             <div key={i} className={`card hover:border-gray-700 transition-all duration-300 hover:-translate-y-1 ${i === 1 ? 'sm:scale-105 border-primary-500/30' : ''}`}>
                                 <div className="h-36 rounded-xl bg-gray-800 overflow-hidden mb-4">
-                                    <img src={p.img} alt={p.title} className="w-full h-full object-cover" />
+                                    <img src={p.img} alt={p.title} loading="lazy" className="w-full h-full object-cover" />
                                 </div>
                                 <h3 className="font-semibold text-gray-100 mb-1">{p.title}</h3>
                                 <div className="flex items-center justify-between mb-3">

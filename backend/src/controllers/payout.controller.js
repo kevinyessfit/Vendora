@@ -19,15 +19,20 @@ export const getMyEarnings = async (req, res) => {
             }),
         ]);
 
+        // Balance is derived from payout amounts (authoritative), not from flipping
+        // individual earning statuses — atomic earnings can't map exactly to an
+        // arbitrary payout amount. availableForPayout = approved − paid − in-flight.
         const approved = earnings.filter(e => e.status === 'APPROVED').reduce((s, e) => s + e.amount, 0);
-        const paid = earnings.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
         const pending = earnings.filter(e => e.status === 'PENDING').reduce((s, e) => s + e.amount, 0);
-        const pendingPayoutAmount = payoutRequests
+        const paid = payoutRequests
+            .filter(p => p.status === 'PAID')
+            .reduce((s, p) => s + p.amount, 0);
+        const inFlight = payoutRequests
             .filter(p => p.status === 'PENDING' || p.status === 'PROCESSING')
             .reduce((s, p) => s + p.amount, 0);
 
         res.json({
-            summary: { approved, paid, pending, availableForPayout: approved - pendingPayoutAmount },
+            summary: { approved, paid, pending, availableForPayout: approved - paid - inFlight },
             earnings,
             payoutRequests,
         });
@@ -44,29 +49,37 @@ export const requestPayout = async (req, res) => {
             return res.status(400).json({ error: 'method, details and amount are required' });
         }
 
-        const earnings = await prisma.earning.findMany({
-            where: { affiliateLink: { vendorId: req.user.id }, status: 'APPROVED' },
-        });
-        const availableBalance = earnings.reduce((s, e) => s + e.amount, 0);
+        const amt = parseFloat(amount);
+        if (!(amt > 0)) {
+            return res.status(400).json({ error: 'Amount must be greater than 0' });
+        }
 
-        const existingPending = await prisma.payoutRequest.aggregate({
-            where: { vendorId: req.user.id, status: { in: ['PENDING', 'PROCESSING'] } },
-            _sum: { amount: true },
-        });
-        const reserved = existingPending._sum.amount || 0;
-        const actualAvailable = availableBalance - reserved;
+        // available = approved earnings − everything already committed to payouts
+        // (PENDING + PROCESSING reserve funds, PAID has consumed them).
+        const [earnings, committedPayouts] = await Promise.all([
+            prisma.earning.findMany({
+                where: { affiliateLink: { vendorId: req.user.id }, status: 'APPROVED' },
+            }),
+            prisma.payoutRequest.aggregate({
+                where: { vendorId: req.user.id, status: { in: ['PENDING', 'PROCESSING', 'PAID'] } },
+                _sum: { amount: true },
+            }),
+        ]);
+        const approvedBalance = earnings.reduce((s, e) => s + e.amount, 0);
+        const committed = committedPayouts._sum.amount || 0;
+        const actualAvailable = approvedBalance - committed;
 
-        if (parseFloat(amount) > actualAvailable) {
+        if (amt > actualAvailable) {
             return res.status(400).json({
                 error: `Insufficient balance. Available: $${actualAvailable.toFixed(2)}`,
             });
         }
 
         const request = await prisma.payoutRequest.create({
-            data: { vendorId: req.user.id, amount: parseFloat(amount), method, details },
+            data: { vendorId: req.user.id, amount: amt, method, details },
         });
 
-        sendPayoutRequestNotification({ vendor: req.user, amount: parseFloat(amount), method }).catch(() => {});
+        sendPayoutRequestNotification({ vendor: req.user, amount: amt, method }).catch(() => {});
 
         res.status(201).json(request);
     } catch (err) {
@@ -87,7 +100,7 @@ export const getAllPayouts = async (req, res) => {
     }
 };
 
-// ADMIN: process a payout request (approve/reject + optionally mark earnings as PAID)
+// ADMIN: process a payout request (mark PROCESSING / PAID / REJECTED)
 export const processPayoutRequest = async (req, res) => {
     try {
         const { id } = req.params;
@@ -100,30 +113,15 @@ export const processPayoutRequest = async (req, res) => {
         const payout = await prisma.payoutRequest.findUnique({ where: { id } });
         if (!payout) return res.status(404).json({ error: 'Payout request not found' });
 
-        const result = await prisma.$transaction(async (tx) => {
-            const updated = await tx.payoutRequest.update({
-                where: { id },
-                data: { status, note: note || null, processedAt: new Date() },
-            });
-
-            if (status === 'PAID') {
-                // Mark approved earnings for this vendor as PAID up to the payout amount
-                const approvedEarnings = await tx.earning.findMany({
-                    where: { affiliateLink: { vendorId: payout.vendorId }, status: 'APPROVED' },
-                    orderBy: { createdAt: 'asc' },
-                });
-                let remaining = payout.amount;
-                for (const earning of approvedEarnings) {
-                    if (remaining <= 0) break;
-                    await tx.earning.update({ where: { id: earning.id }, data: { status: 'PAID' } });
-                    remaining -= earning.amount;
-                }
-            }
-
-            return updated;
+        // The payout amount itself is the source of truth for the vendor's balance
+        // (see getMyEarnings). No per-earning flipping — that could over/under-count
+        // when a payout doesn't align to whole-earning boundaries.
+        const updated = await prisma.payoutRequest.update({
+            where: { id },
+            data: { status, note: note || null, processedAt: new Date() },
         });
 
-        res.json(result);
+        res.json(updated);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

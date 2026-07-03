@@ -49,11 +49,13 @@ export default function Login() {
                     )}
 
                     <div>
-                        <label className="label">Email address</label>
+                        <label htmlFor="email" className="label">Email address</label>
                         <div className="relative">
                             <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
+                                id="email"
                                 type="email"
+                                autoComplete="email"
                                 className="input pl-10"
                                 placeholder="you@example.com"
                                 value={form.email}
@@ -65,13 +67,15 @@ export default function Login() {
 
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="label !mb-0">Password</label>
+                            <label htmlFor="password" className="label !mb-0">Password</label>
                             <Link to="/forgot-password" className="text-xs text-primary-400 hover:text-primary-300 transition-colors">Forgot password?</Link>
                         </div>
                         <div className="relative">
                             <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
+                                id="password"
                                 type={showPass ? 'text' : 'password'}
+                                autoComplete="current-password"
                                 className="input pl-10 pr-10"
                                 placeholder="••••••••"
                                 value={form.password}
@@ -81,6 +85,7 @@ export default function Login() {
                             <button
                                 type="button"
                                 onClick={() => setShowPass(!showPass)}
+                                aria-label={showPass ? 'Hide password' : 'Show password'}
                                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
                             >
                                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}

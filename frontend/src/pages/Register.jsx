@@ -69,7 +69,7 @@ export default function Register() {
 
                     {/* Role selection */}
                     <div>
-                        <label className="label">I want to join as</label>
+                        <span className="label">I want to join as</span>
                         <div className="grid grid-cols-2 gap-3">
                             {ROLES.map(role => {
                                 const Icon = role.icon;
@@ -96,30 +96,31 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <label className="label">Full name</label>
+                        <label htmlFor="name" className="label">Full name</label>
                         <div className="relative">
                             <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                            <input type="text" className="input pl-10" placeholder="Jane Doe"
+                            <input id="name" type="text" autoComplete="name" className="input pl-10" placeholder="Jane Doe"
                                 value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
                         </div>
                     </div>
 
                     <div>
-                        <label className="label">Email address</label>
+                        <label htmlFor="email" className="label">Email address</label>
                         <div className="relative">
                             <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                            <input type="email" className="input pl-10" placeholder="you@example.com"
+                            <input id="email" type="email" autoComplete="email" className="input pl-10" placeholder="you@example.com"
                                 value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
                         </div>
                     </div>
 
                     <div>
-                        <label className="label">Password</label>
+                        <label htmlFor="password" className="label">Password</label>
                         <div className="relative">
                             <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                            <input type={showPass ? 'text' : 'password'} className="input pl-10 pr-10" placeholder="••••••••"
+                            <input id="password" type={showPass ? 'text' : 'password'} autoComplete="new-password" className="input pl-10 pr-10" placeholder="••••••••"
                                 value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required />
                             <button type="button" onClick={() => setShowPass(!showPass)}
+                                aria-label={showPass ? 'Hide password' : 'Show password'}
                                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>

@@ -31,19 +31,19 @@ const PAYMENT_LABELS = {
 function base(content) {
     return `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#0f0f0f;color:#e5e5e5;border-radius:16px;overflow:hidden">
-      <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:32px;text-align:center">
+      <div style="background:linear-gradient(135deg,#6472f5,#ec4899);padding:32px;text-align:center">
         <h1 style="margin:0;color:white;font-size:24px;font-weight:800">Vendora</h1>
         <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">The free affiliate marketplace</p>
       </div>
       <div style="padding:32px">${content}</div>
       <div style="padding:20px 32px;border-top:1px solid #1f1f1f;text-align:center;font-size:12px;color:#6b7280">
-        © 2026 Vendora · <a href="${BASE_URL}" style="color:#7c3aed;text-decoration:none">Visit platform</a>
+        © 2026 Vendora · <a href="${BASE_URL}" style="color:#6472f5;text-decoration:none">Visit platform</a>
       </div>
     </div>`;
 }
 
 function btn(href, label) {
-    return `<a href="${href}" style="display:inline-block;background:#7c3aed;color:white;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600;margin-top:20px">${label}</a>`;
+    return `<a href="${href}" style="display:inline-block;background:#4f4fea;color:white;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600;margin-top:20px">${label}</a>`;
 }
 
 function row(label, value) {

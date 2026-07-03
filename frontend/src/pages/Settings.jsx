@@ -82,18 +82,18 @@ export default function Settings() {
                         <Alert type="success" message={profileStatus.success} />
                         <form onSubmit={handleProfileSubmit} className="space-y-4">
                             <div>
-                                <label className="label">Full name</label>
+                                <label htmlFor="profile-name" className="label">Full name</label>
                                 <div className="relative">
                                     <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input className="input pl-10" value={profile.name}
+                                    <input id="profile-name" autoComplete="name" className="input pl-10" value={profile.name}
                                         onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} required />
                                 </div>
                             </div>
                             <div>
-                                <label className="label">Email address</label>
+                                <label htmlFor="profile-email" className="label">Email address</label>
                                 <div className="relative">
                                     <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input type="email" className="input pl-10" value={profile.email}
+                                    <input id="profile-email" type="email" autoComplete="email" className="input pl-10" value={profile.email}
                                         onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} required />
                                 </div>
                             </div>
@@ -114,28 +114,28 @@ export default function Settings() {
                         <Alert type="success" message={passStatus.success} />
                         <form onSubmit={handlePasswordSubmit} className="space-y-4">
                             <div>
-                                <label className="label">Current password</label>
+                                <label htmlFor="current-password" className="label">Current password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input type="password" className="input pl-10" placeholder="••••••••"
+                                    <input id="current-password" type="password" autoComplete="current-password" className="input pl-10" placeholder="••••••••"
                                         value={passwords.currentPassword}
                                         onChange={e => setPasswords(p => ({ ...p, currentPassword: e.target.value }))} required />
                                 </div>
                             </div>
                             <div>
-                                <label className="label">New password</label>
+                                <label htmlFor="new-password" className="label">New password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input type="password" className="input pl-10" placeholder="••••••••"
+                                    <input id="new-password" type="password" autoComplete="new-password" className="input pl-10" placeholder="••••••••"
                                         value={passwords.newPassword}
                                         onChange={e => setPasswords(p => ({ ...p, newPassword: e.target.value }))} required />
                                 </div>
                             </div>
                             <div>
-                                <label className="label">Confirm new password</label>
+                                <label htmlFor="confirm-password" className="label">Confirm new password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                                    <input type="password" className="input pl-10" placeholder="••••••••"
+                                    <input id="confirm-password" type="password" autoComplete="new-password" className="input pl-10" placeholder="••••••••"
                                         value={passwords.confirmPassword}
                                         onChange={e => setPasswords(p => ({ ...p, confirmPassword: e.target.value }))} required />
                                 </div>

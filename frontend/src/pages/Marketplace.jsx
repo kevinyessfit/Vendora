@@ -101,13 +101,15 @@ export default function Marketplace() {
                         <div className="relative flex-1">
                             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
+                                type="search"
+                                aria-label="Search products"
                                 className="input pl-10"
                                 placeholder="Search products..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                             />
                             {search && (
-                                <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+                                <button onClick={() => setSearch('')} aria-label="Clear search" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                                     <X size={14} />
                                 </button>
                             )}
@@ -116,6 +118,7 @@ export default function Marketplace() {
                             <div className="flex items-center gap-2">
                                 <Filter size={15} className="text-gray-500 shrink-0" />
                                 <select
+                                    aria-label="Filter by minimum commission"
                                     className="input py-2.5 text-sm pr-8"
                                     value={minComm}
                                     onChange={e => setMinComm(Number(e.target.value))}
@@ -127,6 +130,7 @@ export default function Marketplace() {
                                 </select>
                             </div>
                             <select
+                                aria-label="Sort products"
                                 className="input py-2.5 text-sm pr-8"
                                 value={sort}
                                 onChange={e => setSort(e.target.value)}
@@ -168,7 +172,7 @@ export default function Marketplace() {
                                     >
                                         {product.imageUrl ? (
                                             <div className="h-44 rounded-xl overflow-hidden bg-gray-800 mb-4 shrink-0">
-                                                <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                <img src={product.imageUrl} alt={product.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             </div>
                                         ) : (
                                             <div className="h-44 rounded-xl bg-gray-800 mb-4 flex items-center justify-center shrink-0">

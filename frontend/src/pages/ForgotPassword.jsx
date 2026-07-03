@@ -59,11 +59,13 @@ export default function ForgotPassword() {
                             </div>
                         )}
                         <div>
-                            <label className="label">Email address</label>
+                            <label htmlFor="email" className="label">Email address</label>
                             <div className="relative">
                                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                                 <input
+                                    id="email"
                                     type="email"
+                                    autoComplete="email"
                                     className="input pl-10"
                                     placeholder="you@example.com"
                                     value={email}

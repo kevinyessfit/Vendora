@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -6,12 +7,29 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Seeding database...');
 
-    const adminPass = await bcrypt.hash('admin123', 10);
-    const admin = await prisma.user.upsert({
-        where: { email: 'admin@vendora.com' },
-        update: {},
-        create: { name: 'Admin', email: 'admin@vendora.com', password: adminPass, role: 'ADMIN' }
-    });
+    // Admin credentials MUST come from env — never ship a hardcoded/guessable password.
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) {
+        console.warn('⚠️  Skipping admin: set ADMIN_EMAIL and ADMIN_PASSWORD to create the admin account.');
+    } else if (adminPassword.length < 12) {
+        console.warn('⚠️  Skipping admin: ADMIN_PASSWORD must be at least 12 characters.');
+    } else {
+        const adminPass = await bcrypt.hash(adminPassword, 10);
+        await prisma.user.upsert({
+            where: { email: adminEmail },
+            update: { password: adminPass, role: 'ADMIN' },
+            create: { name: 'Admin', email: adminEmail, password: adminPass, role: 'ADMIN' },
+        });
+        console.log(`✅ Admin ready: ${adminEmail}`);
+    }
+
+    // Demo fixtures (test merchant/vendor + sample products) — opt-in only.
+    // Never seed weak-password demo accounts into production.
+    if (process.env.SEED_DEMO !== 'true') {
+        console.log('ℹ️  Skipping demo data (set SEED_DEMO=true for local test accounts).');
+        return;
+    }
 
     const merchantPass = await bcrypt.hash('merchant123', 10);
     const merchant = await prisma.user.upsert({
@@ -21,7 +39,7 @@ async function main() {
     });
 
     const vendorPass = await bcrypt.hash('vendor123', 10);
-    const vendor = await prisma.user.upsert({
+    await prisma.user.upsert({
         where: { email: 'vendor@vendora.com' },
         update: {},
         create: { name: 'Test Vendor', email: 'vendor@vendora.com', password: vendorPass, role: 'VENDOR' }
@@ -56,8 +74,7 @@ async function main() {
         }),
     ]);
 
-    console.log(`✅ Seeded: admin, merchant, vendor + ${products.length} products`);
-    console.log('📧 admin@vendora.com / admin123');
+    console.log(`✅ Demo seeded: merchant, vendor + ${products.length} products`);
     console.log('📧 merchant@vendora.com / merchant123');
     console.log('📧 vendor@vendora.com / vendor123');
 }

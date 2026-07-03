@@ -22,8 +22,8 @@ function CopyButton({ text }) {
         setTimeout(() => setCopied(false), 2000);
     };
     return (
-        <button onClick={handle} title="Copy link" className="p-1.5 text-gray-500 hover:text-primary-400 transition-colors">
-            {copied ? <CheckCheck size={15} className="text-emerald-400" /> : <Copy size={15} />}
+        <button onClick={handle} title="Copy link" aria-label={copied ? 'Link copied' : 'Copy link'} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-gray-500 hover:text-primary-400 transition-colors">
+            {copied ? <CheckCheck size={16} className="text-emerald-400" /> : <Copy size={16} />}
         </button>
     );
 }
@@ -52,19 +52,19 @@ function PayoutModal({ available, onClose, onSuccess }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="card w-full max-w-md relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
+                <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
                 <h2 className="text-xl font-bold mb-1">Request Payout</h2>
                 <p className="text-sm text-gray-500 mb-5">Available balance: <span className="text-emerald-400 font-semibold">${available.toFixed(2)}</span></p>
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="label">Amount ($)</label>
-                        <input type="number" className="input" step="0.01" min="1" max={available} value={form.amount}
+                        <label htmlFor="payout-amount" className="label">Amount ($)</label>
+                        <input id="payout-amount" type="number" className="input" step="0.01" min="1" max={available} value={form.amount}
                             onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">Payment Method</label>
-                        <select className="input" value={form.method} onChange={e => setForm(p => ({ ...p, method: e.target.value }))}>
+                        <label htmlFor="payout-method" className="label">Payment Method</label>
+                        <select id="payout-method" className="input" value={form.method} onChange={e => setForm(p => ({ ...p, method: e.target.value }))}>
                             <option>PayPal</option>
                             <option>Bank Transfer</option>
                             <option>Mobile Money</option>
@@ -72,8 +72,8 @@ function PayoutModal({ available, onClose, onSuccess }) {
                         </select>
                     </div>
                     <div>
-                        <label className="label">Payment Details</label>
-                        <input className="input" placeholder="e.g. your@paypal.com or account number"
+                        <label htmlFor="payout-details" className="label">Payment Details</label>
+                        <input id="payout-details" className="input" placeholder="e.g. your@paypal.com or account number"
                             value={form.details} onChange={e => setForm(p => ({ ...p, details: e.target.value }))} required />
                     </div>
                     <div className="flex gap-3 pt-2">
@@ -181,7 +181,7 @@ export default function VendorDashboard() {
                             <div key={product.id} className="card hover:border-gray-700 transition-colors">
                                 {product.imageUrl && (
                                     <div className="h-40 rounded-xl overflow-hidden mb-4 bg-gray-800">
-                                        <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                                        <img src={product.imageUrl} alt={product.title} loading="lazy" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div className="flex items-start justify-between mb-2">
@@ -209,7 +209,9 @@ export default function VendorDashboard() {
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                             Generating...
                                         </div>
-                                    ) : hasLink ? '✓ Link Generated' : 'Get Affiliate Link'}
+                                    ) : hasLink ? (
+                                        <span className="flex items-center justify-center gap-1.5"><CheckCheck size={15} /> Link Generated</span>
+                                    ) : 'Get Affiliate Link'}
                                 </button>
                             </div>
                         );
@@ -231,7 +233,7 @@ export default function VendorDashboard() {
                             <div key={link.id} className="card flex flex-col sm:flex-row gap-4">
                                 {link.product?.imageUrl && (
                                     <div className="w-full sm:w-20 h-20 rounded-xl bg-gray-800 overflow-hidden shrink-0">
-                                        <img src={link.product.imageUrl} alt="" className="w-full h-full object-cover" />
+                                        <img src={link.product.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
@@ -296,7 +298,7 @@ export default function VendorDashboard() {
                                                 <div className="flex items-center gap-3">
                                                     {order.product.imageUrl && (
                                                         <div className="w-8 h-8 rounded shrink-0 bg-gray-800 overflow-hidden">
-                                                            <img src={order.product.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                            <img src={order.product.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
                                                         </div>
                                                     )}
                                                     <span className="text-gray-300 font-medium">{order.product.title}</span>

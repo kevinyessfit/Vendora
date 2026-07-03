@@ -5,6 +5,7 @@ import api from '../lib/api';
 import {
     ShoppingBag, ArrowLeft, DollarSign, TrendingUp, Users, Link2,
     Copy, CheckCheck, ExternalLink, Package, Tag, ChevronRight, Zap, Share2,
+    Banknote, Smartphone, Landmark,
 } from 'lucide-react';
 
 function PublicNavbar() {
@@ -44,9 +45,9 @@ function CopyButton({ text, label = 'Copy Link' }) {
 }
 
 const PAYMENT_METHODS = [
-    { value: 'COD', label: '💵 Cash on Delivery', desc: 'Pay when your order arrives' },
-    { value: 'MOBILE_MONEY', label: '📱 Mobile Money', desc: 'Orange Money, Wave, MTN...' },
-    { value: 'BANK_TRANSFER', label: '🏦 Bank Transfer', desc: 'The merchant will send you details' },
+    { value: 'COD', label: 'Cash on Delivery', desc: 'Pay when your order arrives', icon: Banknote },
+    { value: 'MOBILE_MONEY', label: 'Mobile Money', desc: 'Orange Money, Wave, MTN...', icon: Smartphone },
+    { value: 'BANK_TRANSFER', label: 'Bank Transfer', desc: 'The merchant will send you details', icon: Landmark },
 ];
 
 function OrderModal({ product, affiliateCode, onClose }) {
@@ -101,34 +102,38 @@ function OrderModal({ product, affiliateCode, onClose }) {
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="label">Full Name</label>
-                        <input className="input" required value={form.name} onChange={e => setForm(s => ({ ...s, name: e.target.value }))} placeholder="John Doe" />
+                        <label htmlFor="checkout-name" className="label">Full Name</label>
+                        <input id="checkout-name" autoComplete="name" className="input" required value={form.name} onChange={e => setForm(s => ({ ...s, name: e.target.value }))} placeholder="John Doe" />
                     </div>
                     <div>
-                        <label className="label">Phone Number</label>
-                        <input className="input" required type="tel" value={form.phone} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} placeholder="+1 555 123-4567" />
+                        <label htmlFor="checkout-phone" className="label">Phone Number</label>
+                        <input id="checkout-phone" className="input" required type="tel" autoComplete="tel" value={form.phone} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} placeholder="+1 555 123-4567" />
                     </div>
                     <div>
-                        <label className="label">Email <span className="text-gray-600 font-normal">(optional — for order confirmation)</span></label>
-                        <input className="input" type="email" value={form.email} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} placeholder="you@example.com" />
+                        <label htmlFor="checkout-email" className="label">Email <span className="text-gray-600 font-normal">(optional — for order confirmation)</span></label>
+                        <input id="checkout-email" className="input" type="email" autoComplete="email" value={form.email} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} placeholder="you@example.com" />
                     </div>
                     <div>
-                        <label className="label">Delivery Address</label>
-                        <textarea className="input resize-none h-20" required value={form.address} onChange={e => setForm(s => ({ ...s, address: e.target.value }))} placeholder="123 Main St, City..." />
+                        <label htmlFor="checkout-address" className="label">Delivery Address</label>
+                        <textarea id="checkout-address" className="input resize-none h-20" required value={form.address} onChange={e => setForm(s => ({ ...s, address: e.target.value }))} placeholder="123 Main St, City..." />
                     </div>
                     <div>
-                        <label className="label">Payment Method</label>
+                        <span className="label">Payment Method</span>
                         <div className="space-y-2">
-                            {PAYMENT_METHODS.map(m => (
-                                <label key={m.value} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.paymentMethod === m.value ? 'border-primary-500/60 bg-primary-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
-                                    <input type="radio" name="paymentMethod" value={m.value} checked={form.paymentMethod === m.value}
-                                        onChange={e => setForm(s => ({ ...s, paymentMethod: e.target.value }))} className="accent-primary-500" />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-100">{m.label}</p>
-                                        <p className="text-xs text-gray-500">{m.desc}</p>
-                                    </div>
-                                </label>
-                            ))}
+                            {PAYMENT_METHODS.map(m => {
+                                const Icon = m.icon;
+                                return (
+                                    <label key={m.value} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.paymentMethod === m.value ? 'border-primary-500/60 bg-primary-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
+                                        <input type="radio" name="paymentMethod" value={m.value} checked={form.paymentMethod === m.value}
+                                            onChange={e => setForm(s => ({ ...s, paymentMethod: e.target.value }))} className="accent-primary-500" />
+                                        <Icon size={18} className="text-gray-400 shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-100">{m.label}</p>
+                                            <p className="text-xs text-gray-500">{m.desc}</p>
+                                        </div>
+                                    </label>
+                                );
+                            })}
                         </div>
                         {form.paymentMethod !== 'COD' && (
                             <p className="text-xs text-amber-400 mt-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">

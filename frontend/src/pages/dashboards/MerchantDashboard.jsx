@@ -8,7 +8,7 @@ function OrderDetailModal({ order, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="card w-full max-w-md relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
+                <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
                 <h2 className="text-xl font-bold text-white mb-1">Order Details</h2>
                 <p className="text-xs text-gray-500 mb-5 font-mono">#{order.id.split('-')[0].toUpperCase()} · {new Date(order.createdAt).toLocaleString()}</p>
 
@@ -124,33 +124,33 @@ function ProductModal({ product, onClose, onSaved }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="card w-full max-w-lg relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-300">
+                <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-500 hover:text-gray-300">
                     <X size={20} />
                 </button>
                 <h2 className="text-xl font-bold mb-5">{isEdit ? 'Edit Product' : 'List New Product'}</h2>
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="label">Product title</label>
-                        <input className="input" placeholder="e.g. Wireless Headphones" value={form.title}
+                        <label htmlFor="product-title" className="label">Product title</label>
+                        <input id="product-title" className="input" placeholder="e.g. Wireless Headphones" value={form.title}
                             onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">Description</label>
-                        <textarea className="input resize-none h-24" placeholder="Describe your product..."
+                        <label htmlFor="product-description" className="label">Description</label>
+                        <textarea id="product-description" className="input resize-none h-24" placeholder="Describe your product..."
                             value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">Product Image (optional)</label>
+                        <label htmlFor="product-image" className="label">Product Image (optional)</label>
                         <div className="flex gap-3 items-center">
-                            <input type="file" accept="image/*" className="input file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary-500/20 file:text-primary-400 hover:file:bg-primary-500/30 cursor-pointer"
+                            <input id="product-image" type="file" accept="image/*" className="input file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary-500/20 file:text-primary-400 hover:file:bg-primary-500/30 cursor-pointer"
                                 onChange={e => {
                                     setImageFile(e.target.files[0]);
                                     setForm(p => ({ ...p, imageUrl: '' }));
                                 }}
                             />
                             <div className="text-xs text-gray-500 uppercase font-semibold">OR</div>
-                            <input className="input flex-1" placeholder="Paste image URL..." value={form.imageUrl}
+                            <input aria-label="Product image URL" className="input flex-1" placeholder="Paste image URL..." value={form.imageUrl}
                                 onChange={e => {
                                     setForm(p => ({ ...p, imageUrl: e.target.value }));
                                     setImageFile(null);
@@ -160,13 +160,13 @@ function ProductModal({ product, onClose, onSaved }) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Price ($)</label>
-                            <input type="number" min="0" step="0.01" className="input" placeholder="99.99" value={form.price}
+                            <label htmlFor="product-price" className="label">Price ($)</label>
+                            <input id="product-price" type="number" min="0" step="0.01" className="input" placeholder="99.99" value={form.price}
                                 onChange={e => setForm(p => ({ ...p, price: e.target.value }))} required />
                         </div>
                         <div>
-                            <label className="label">Commission (%)</label>
-                            <input type="number" min="1" max="100" className="input" value={form.commissionPct}
+                            <label htmlFor="product-commission" className="label">Commission (%)</label>
+                            <input id="product-commission" type="number" min="1" max="100" className="input" value={form.commissionPct}
                                 onChange={e => setForm(p => ({ ...p, commissionPct: e.target.value }))} required />
                         </div>
                     </div>
@@ -273,7 +273,7 @@ export default function MerchantDashboard() {
                             <div key={product.id} className="card group hover:border-gray-700 transition-colors">
                                 {product.imageUrl && (
                                     <div className="h-40 rounded-xl overflow-hidden mb-4 bg-gray-800">
-                                        <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                                        <img src={product.imageUrl} alt={product.title} loading="lazy" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -291,12 +291,12 @@ export default function MerchantDashboard() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-gray-600">{product._count?.affiliateLinks || 0} affiliates</span>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openEdit(product)} className="p-1.5 text-gray-400 hover:text-primary-400 transition-colors">
-                                            <Edit2 size={14} />
+                                    <div className="flex gap-2 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+                                        <button onClick={() => openEdit(product)} aria-label={`Edit ${product.title}`} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-gray-400 hover:text-primary-400 transition-colors">
+                                            <Edit2 size={16} />
                                         </button>
-                                        <button onClick={() => handleDelete(product.id)} className="p-1.5 text-gray-400 hover:text-red-400 transition-colors">
-                                            <Trash2 size={14} />
+                                        <button onClick={() => handleDelete(product.id)} aria-label={`Delete ${product.title}`} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -343,6 +343,7 @@ export default function MerchantDashboard() {
                                         <td className="p-4 text-right font-bold text-emerald-400">${order.merchantEarnings.toFixed(2)}</td>
                                         <td className="p-4 text-right">
                                             <select
+                                                aria-label={`Order status for ${order.customerName}`}
                                                 className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded px-2 py-1 outline-none"
                                                 value={order.status || 'PENDING'}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -355,8 +356,8 @@ export default function MerchantDashboard() {
                                             </select>
                                         </td>
                                         <td className="p-4">
-                                            <button onClick={() => setSelectedOrder(order)} className="p-1.5 text-gray-500 hover:text-primary-400 transition-colors" title="View details">
-                                                <Eye size={15} />
+                                            <button onClick={() => setSelectedOrder(order)} aria-label="View order details" className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-gray-500 hover:text-primary-400 transition-colors" title="View details">
+                                                <Eye size={16} />
                                             </button>
                                         </td>
                                     </tr>
