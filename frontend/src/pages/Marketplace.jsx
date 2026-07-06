@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
+import { formatCurrency } from '../lib/currency';
 import { ShoppingBag, Search, Filter, DollarSign, TrendingUp, ArrowRight, Package, X } from 'lucide-react';
 
 function PublicNavbar() {
@@ -189,7 +190,7 @@ export default function Marketplace() {
 
                                             <div className="mt-auto space-y-3">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-emerald-400 font-bold text-xl">${product.price.toFixed(2)}</span>
+                                                    <span className="text-emerald-400 font-bold text-xl">{formatCurrency(product.price)}</span>
                                                     <span className="text-xs text-gray-600">by {product.merchant?.name}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between pt-3 border-t border-gray-800">
@@ -199,7 +200,7 @@ export default function Marketplace() {
                                                     </div>
                                                     <div className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
                                                         <DollarSign size={12} />
-                                                        Earn ${(product.price * product.commissionPct / 100).toFixed(2)}/sale
+                                                        Earn {formatCurrency(product.price * product.commissionPct / 100)}/sale
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 text-primary-400 text-xs font-medium group-hover:gap-2 transition-all">

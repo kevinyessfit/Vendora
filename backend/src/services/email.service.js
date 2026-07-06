@@ -1,3 +1,5 @@
+import { formatCurrency } from '../utils/currency.js';
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.FROM_EMAIL || 'Vendora <noreply@vendora.com>';
 const BASE_URL = process.env.CLIENT_URL || 'https://vendora.vercel.app';
@@ -63,8 +65,8 @@ export async function sendNewOrderEmailToMerchant({ merchant, order, product }) 
                 ${row('Téléphone', order.customerPhone)}
                 ${row('Adresse', order.customerAddress)}
                 ${row('Paiement', PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod)}
-                ${row('Total commande', `$${order.amount.toFixed(2)}`)}
-                ${row('Vos gains', `<span style="color:#34d399">$${order.merchantEarnings.toFixed(2)}</span>`)}
+                ${row('Total commande', formatCurrency(order.amount))}
+                ${row('Vos gains', `<span style="color:#34d399">${formatCurrency(order.merchantEarnings)}</span>`)}
             </table>
             ${order.customerEmail ? `<p style="color:#9ca3af;font-size:13px">Email client : ${order.customerEmail}</p>` : ''}
             ${btn(`${BASE_URL}/dashboard`, 'Voir dans le dashboard')}
@@ -83,7 +85,7 @@ export async function sendOrderConfirmationToCustomer({ customerEmail, customerN
             <p style="color:#9ca3af">Votre commande pour <strong style="color:#e5e5e5">${product.title}</strong> a bien été enregistrée.</p>
             <table style="width:100%;border-collapse:collapse;margin:16px 0">
                 ${row('N° commande', `#${order.id.split('-')[0].toUpperCase()}`)}
-                ${row('Montant', `$${order.amount.toFixed(2)}`)}
+                ${row('Montant', formatCurrency(order.amount))}
                 ${row('Paiement', PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod)}
                 ${row('Adresse', order.customerAddress)}
             </table>
@@ -95,14 +97,14 @@ export async function sendOrderConfirmationToCustomer({ customerEmail, customerN
 export async function sendCommissionEarnedToVendor({ vendor, product, amount }) {
     await send({
         to: vendor.email,
-        subject: `💰 Commission gagnée — $${amount.toFixed(2)} sur ${product.title}`,
+        subject: `💰 Commission gagnée — ${formatCurrency(amount)} sur ${product.title}`,
         html: base(`
             <h2 style="color:white;margin-top:0">Vous avez gagné une commission !</h2>
             <p style="color:#9ca3af">Bonjour <strong style="color:#e5e5e5">${vendor.name}</strong>,</p>
             <p style="color:#9ca3af">Une vente a été réalisée via votre lien affilié pour <strong style="color:#e5e5e5">${product.title}</strong>.</p>
             <div style="background:#052e16;border:1px solid #166534;border-radius:12px;padding:20px;text-align:center;margin:20px 0">
                 <p style="margin:0;color:#86efac;font-size:13px">Commission gagnée</p>
-                <p style="margin:8px 0 0;color:#34d399;font-size:32px;font-weight:800">$${amount.toFixed(2)}</p>
+                <p style="margin:8px 0 0;color:#34d399;font-size:32px;font-weight:800">${formatCurrency(amount)}</p>
                 <p style="margin:4px 0 0;color:#6b7280;font-size:12px">Statut : En attente de validation</p>
             </div>
             <p style="color:#9ca3af;font-size:13px">La commission passe à "Approuvée" quand le marchand marque la commande comme complétée.</p>
@@ -156,12 +158,12 @@ export async function sendPayoutRequestNotification({ vendor, amount, method }) 
     if (!adminEmail) return;
     await send({
         to: adminEmail,
-        subject: `💸 Demande de payout — $${amount.toFixed(2)} de ${vendor.name}`,
+        subject: `💸 Demande de payout — ${formatCurrency(amount)} de ${vendor.name}`,
         html: base(`
             <h2 style="color:white;margin-top:0">Nouvelle demande de payout</h2>
             <p style="color:#9ca3af"><strong style="color:#e5e5e5">${vendor.name}</strong> (${vendor.email}) demande un paiement.</p>
             <table style="width:100%;border-collapse:collapse;margin:16px 0">
-                ${row('Montant', `<span style="color:#34d399">$${amount.toFixed(2)}</span>`)}
+                ${row('Montant', `<span style="color:#34d399">${formatCurrency(amount)}</span>`)}
                 ${row('Méthode', method)}
             </table>
             ${btn(`${BASE_URL}/dashboard`, 'Traiter dans le dashboard admin')}

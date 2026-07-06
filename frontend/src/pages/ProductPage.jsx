@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
+import { formatCurrency } from '../lib/currency';
 import {
     ShoppingBag, ArrowLeft, DollarSign, TrendingUp, Users, Link2,
     Copy, CheckCheck, ExternalLink, Package, Tag, ChevronRight, Zap, Share2,
@@ -98,7 +99,7 @@ function OrderModal({ product, affiliateCode, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
             <div className="card w-full max-w-md my-4">
                 <h2 className="text-2xl font-bold text-white mb-1">Checkout</h2>
-                <p className="text-sm text-gray-500 mb-5">{product.title} — <span className="text-emerald-400 font-semibold">${product.price.toFixed(2)}</span></p>
+                <p className="text-sm text-gray-500 mb-5">{product.title} — <span className="text-emerald-400 font-semibold">{formatCurrency(product.price)}</span></p>
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -144,7 +145,7 @@ function OrderModal({ product, affiliateCode, onClose }) {
                     <div className="flex gap-3 pt-2">
                         <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
                         <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500">
-                            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : `Order — $${product.price.toFixed(2)}`}
+                            {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : `Order — ${formatCurrency(product.price)}`}
                         </button>
                     </div>
                 </form>
@@ -207,7 +208,7 @@ export default function ProductPage() {
     const affiliateUrl = myLink ? `${window.location.origin}/go/${myLink.code}` : null;
 
     const shareOnWhatsApp = (url) => {
-        const msg = `🛍️ *${product.title}*\n\n${product.description.slice(0, 100)}...\n\n💰 Prix: $${product.price.toFixed(2)} — Commandez ici:\n${url}`;
+        const msg = `🛍️ *${product.title}*\n\n${product.description.slice(0, 100)}...\n\n💰 Prix: ${formatCurrency(product.price)} — Commandez ici:\n${url}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
@@ -229,7 +230,7 @@ export default function ProductPage() {
         );
     }
 
-    const commissionAmount = (product.price * product.commissionPct / 100).toFixed(2);
+    const commissionAmount = product.price * product.commissionPct / 100;
 
     return (
         <div className="min-h-screen">
@@ -274,7 +275,7 @@ export default function ProductPage() {
                             <div className="flex items-center justify-between mb-4">
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Product Price</p>
-                                    <p className="text-3xl font-bold text-white">${product.price.toFixed(2)}</p>
+                                    <p className="text-3xl font-bold text-white">{formatCurrency(product.price)}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-sm text-gray-500 mb-1">Commission Rate</p>
@@ -283,7 +284,7 @@ export default function ProductPage() {
                             </div>
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
                                 <p className="text-sm text-gray-400 mb-1">Your earnings per sale</p>
-                                <p className="text-2xl font-extrabold text-emerald-400">${commissionAmount}</p>
+                                <p className="text-2xl font-extrabold text-emerald-400">{formatCurrency(commissionAmount)}</p>
                             </div>
                         </div>
 
@@ -305,7 +306,7 @@ export default function ProductPage() {
                         <div className="mb-6">
                             {product.isActive ? (
                                 <button onClick={() => setShowOrderModal(true)} className="btn-primary w-full py-4 text-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20">
-                                    <ShoppingBag size={20} /> Order Now — ${product.price.toFixed(2)}
+                                    <ShoppingBag size={20} /> Order Now — {formatCurrency(product.price)}
                                 </button>
                             ) : (
                                 <div className="w-full py-4 rounded-xl bg-gray-800/60 border border-gray-700 text-gray-500 text-center font-semibold">
@@ -320,7 +321,7 @@ export default function ProductPage() {
                             <div className="card bg-gradient-to-br from-primary-900/40 to-accent-900/20 border-primary-500/20">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Zap size={18} className="text-primary-400" />
-                                    <p className="font-semibold text-gray-100">Start earning ${commissionAmount} per sale</p>
+                                    <p className="font-semibold text-gray-100">Start earning {formatCurrency(commissionAmount)} per sale</p>
                                 </div>
                                 <p className="text-sm text-gray-400 mb-4">Create a free vendor account to get your affiliate link for this product.</p>
                                 <Link to="/register" className="btn-primary w-full text-center flex items-center justify-center gap-2">

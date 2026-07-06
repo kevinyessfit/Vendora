@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { formatCurrency } from '../../lib/currency';
 import { Users, Package, Link2, MousePointerClick, Trash2, ToggleLeft, ToggleRight, Shield, ShoppingCart, DollarSign, TrendingUp, Wallet, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color }) {
@@ -105,9 +106,9 @@ export default function AdminDashboard() {
             {tab === 'overview' && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <StatCard label="Total Revenue" value={`$${(stats.totalRevenue || 0).toFixed(2)}`} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
-                        <StatCard label="Platform Revenue" value={`$${(stats.platformRevenue || 0).toFixed(2)}`} icon={TrendingUp} color="bg-gradient-to-br from-primary-600 to-primary-500" />
-                        <StatCard label="Commissions Paid" value={`$${(stats.totalCommissions || 0).toFixed(2)}`} icon={Link2} color="bg-gradient-to-br from-purple-600 to-purple-500" />
+                        <StatCard label="Total Revenue" value={formatCurrency(stats.totalRevenue)} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
+                        <StatCard label="Platform Revenue" value={formatCurrency(stats.platformRevenue)} icon={TrendingUp} color="bg-gradient-to-br from-primary-600 to-primary-500" />
+                        <StatCard label="Commissions Paid" value={formatCurrency(stats.totalCommissions)} icon={Link2} color="bg-gradient-to-br from-purple-600 to-purple-500" />
                         <StatCard label="Total Orders" value={stats.totalOrders || 0} icon={ShoppingCart} color="bg-gradient-to-br from-blue-600 to-blue-500" />
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -182,7 +183,7 @@ export default function AdminDashboard() {
                                     <tr key={p.id} className="hover:bg-gray-800/50 transition-colors">
                                         <td className="px-5 py-3 font-medium text-gray-200 max-w-xs truncate">{p.title}</td>
                                         <td className="px-5 py-3 text-gray-400">{p.merchant?.name}</td>
-                                        <td className="px-5 py-3 text-emerald-400 font-semibold">${p.price.toFixed(2)}</td>
+                                        <td className="px-5 py-3 text-emerald-400 font-semibold">{formatCurrency(p.price)}</td>
                                         <td className="px-5 py-3 text-gray-400">{p.commissionPct}%</td>
                                         <td className="px-5 py-3 text-gray-400">{p._count?.affiliateLinks || 0}</td>
                                         <td className="px-5 py-3">
@@ -231,7 +232,7 @@ export default function AdminDashboard() {
                                                 <span className="badge-vendor">Ref: {order.affiliateLink.vendor.name}</span>
                                             ) : <span className="text-gray-600 text-xs italic">Direct (No affiliate)</span>}
                                         </td>
-                                        <td className="px-5 py-3 text-right font-medium text-gray-300">${order.amount.toFixed(2)}</td>
+                                        <td className="px-5 py-3 text-right font-medium text-gray-300">{formatCurrency(order.amount)}</td>
                                         <td className="px-5 py-3 text-right">
                                             <select
                                                 aria-label={`Order status for ${order.customerName}`}
@@ -283,7 +284,7 @@ export default function AdminDashboard() {
                                             <p className="font-medium text-gray-200">{p.vendor.name}</p>
                                             <p className="text-xs text-gray-500">{p.vendor.email}</p>
                                         </td>
-                                        <td className="px-5 py-3 font-bold text-emerald-400">${p.amount.toFixed(2)}</td>
+                                        <td className="px-5 py-3 font-bold text-emerald-400">{formatCurrency(p.amount)}</td>
                                         <td className="px-5 py-3 text-gray-300">{p.method}</td>
                                         <td className="px-5 py-3 text-gray-400 max-w-[160px] truncate" title={p.details}>{p.details}</td>
                                         <td className="px-5 py-3 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>

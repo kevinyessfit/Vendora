@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { formatCurrency } from '../../lib/currency';
 import { Link2, MousePointerClick, DollarSign, TrendingUp, Copy, CheckCheck, ShoppingBag, ExternalLink, Share2, Wallet, X, AlertCircle } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color }) {
@@ -29,7 +30,7 @@ function CopyButton({ text }) {
 }
 
 function PayoutModal({ available, onClose, onSuccess }) {
-    const [form, setForm] = useState({ method: 'PayPal', details: '', amount: available.toFixed(2) });
+    const [form, setForm] = useState({ method: 'PayPal', details: '', amount: Math.round(available) });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -37,7 +38,7 @@ function PayoutModal({ available, onClose, onSuccess }) {
         e.preventDefault();
         setError('');
         if (parseFloat(form.amount) <= 0) return setError('Amount must be greater than 0');
-        if (parseFloat(form.amount) > available) return setError(`Max available: $${available.toFixed(2)}`);
+        if (parseFloat(form.amount) > available) return setError(`Max available: ${formatCurrency(available)}`);
         setLoading(true);
         try {
             await api.post('/payouts/request', form);
@@ -54,12 +55,12 @@ function PayoutModal({ available, onClose, onSuccess }) {
             <div className="card w-full max-w-md relative">
                 <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-gray-500 hover:text-gray-300"><X size={20} /></button>
                 <h2 className="text-xl font-bold mb-1">Request Payout</h2>
-                <p className="text-sm text-gray-500 mb-5">Available balance: <span className="text-emerald-400 font-semibold">${available.toFixed(2)}</span></p>
+                <p className="text-sm text-gray-500 mb-5">Available balance: <span className="text-emerald-400 font-semibold">{formatCurrency(available)}</span></p>
                 {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="payout-amount" className="label">Amount ($)</label>
-                        <input id="payout-amount" type="number" className="input" step="0.01" min="1" max={available} value={form.amount}
+                        <label htmlFor="payout-amount" className="label">Amount (FCFA)</label>
+                        <input id="payout-amount" type="number" className="input" step="1" min="1" max={available} value={form.amount}
                             onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} required />
                     </div>
                     <div>
@@ -134,8 +135,8 @@ export default function VendorDashboard() {
 
     const shareOnWhatsApp = (link) => {
         const url = getAffiliateUrl(link.code);
-        const earn = ((link.product?.price || 0) * (link.product?.commissionPct || 0) / 100).toFixed(2);
-        const msg = `🛍️ *${link.product?.title}*\n\n💰 Prix: $${link.product?.price?.toFixed(2)}\n✅ Gagnez $${earn} par vente\n\nCommandez ici:\n${url}`;
+        const earn = (link.product?.price || 0) * (link.product?.commissionPct || 0) / 100;
+        const msg = `🛍️ *${link.product?.title}*\n\n💰 Prix: ${formatCurrency(link.product?.price)}\n✅ Gagnez ${formatCurrency(earn)} par vente\n\nCommandez ici:\n${url}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
@@ -153,8 +154,8 @@ export default function VendorDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <StatCard label="My Links" value={stats.totalLinks} icon={Link2} color="bg-gradient-to-br from-primary-600 to-primary-500" />
                 <StatCard label="Total Clicks" value={stats.totalClicks} icon={MousePointerClick} color="bg-gradient-to-br from-blue-600 to-blue-500" />
-                <StatCard label="Total Earned" value={`$${(stats.totalEarnings || 0).toFixed(2)}`} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
-                <StatCard label="Pending" value={`$${(stats.pendingEarnings || 0).toFixed(2)}`} icon={TrendingUp} color="bg-gradient-to-br from-amber-600 to-amber-500" />
+                <StatCard label="Total Earned" value={formatCurrency(stats.totalEarnings)} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
+                <StatCard label="Pending" value={formatCurrency(stats.pendingEarnings)} icon={TrendingUp} color="bg-gradient-to-br from-amber-600 to-amber-500" />
             </div>
 
             {/* Tabs */}
@@ -190,11 +191,11 @@ export default function VendorDashboard() {
                                 </div>
                                 <p className="text-sm text-gray-500 line-clamp-2 mb-4">{product.description}</p>
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="text-emerald-400 font-bold text-lg">${product.price.toFixed(2)}</span>
+                                    <span className="text-emerald-400 font-bold text-lg">{formatCurrency(product.price)}</span>
                                     <span className="text-xs text-gray-600">by {product.merchant?.name}</span>
                                 </div>
                                 <div className="text-xs text-gray-600 mb-3">
-                                    Earn <span className="text-emerald-400 font-semibold">${(product.price * product.commissionPct / 100).toFixed(2)}</span> per sale
+                                    Earn <span className="text-emerald-400 font-semibold">{formatCurrency(product.price * product.commissionPct / 100)}</span> per sale
                                 </div>
                                 <button
                                     onClick={() => handleGenerate(product.id)}
@@ -256,7 +257,7 @@ export default function VendorDashboard() {
                                             <MousePointerClick size={13} /> {link._count?.clicks || 0} clicks
                                         </span>
                                         <span className="flex items-center gap-1.5 text-emerald-400">
-                                            <DollarSign size={13} /> ${(link.totalEarnings || 0).toFixed(2)} earned
+                                            <DollarSign size={13} /> {formatCurrency(link.totalEarnings)} earned
                                         </span>
                                     </div>
                                 </div>
@@ -304,8 +305,8 @@ export default function VendorDashboard() {
                                                     <span className="text-gray-300 font-medium">{order.product.title}</span>
                                                 </div>
                                             </td>
-                                            <td className="p-4 text-right text-gray-400">${order.amount.toFixed(2)}</td>
-                                            <td className="p-4 text-right font-bold text-emerald-400">+${order.vendorCommission.toFixed(2)}</td>
+                                            <td className="p-4 text-right text-gray-400">{formatCurrency(order.amount)}</td>
+                                            <td className="p-4 text-right font-bold text-emerald-400">+{formatCurrency(order.vendorCommission)}</td>
                                             <td className="p-4 text-right">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full border ${order.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : order.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' : order.status === 'SHIPPED' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
                                                     {order.status || 'PENDING'}
@@ -327,15 +328,15 @@ export default function VendorDashboard() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div className="card text-center">
                             <p className="text-xs text-gray-500 mb-1">Available</p>
-                            <p className="text-2xl font-bold text-emerald-400">${(earningsData.summary.availableForPayout || 0).toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(earningsData.summary.availableForPayout)}</p>
                         </div>
                         <div className="card text-center">
                             <p className="text-xs text-gray-500 mb-1">Pending approval</p>
-                            <p className="text-2xl font-bold text-amber-400">${(earningsData.summary.pending || 0).toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-amber-400">{formatCurrency(earningsData.summary.pending)}</p>
                         </div>
                         <div className="card text-center">
                             <p className="text-xs text-gray-500 mb-1">Total paid out</p>
-                            <p className="text-2xl font-bold text-gray-300">${(earningsData.summary.paid || 0).toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-gray-300">{formatCurrency(earningsData.summary.paid)}</p>
                         </div>
                         <div className="card flex items-center justify-center">
                             <button
@@ -367,7 +368,7 @@ export default function VendorDashboard() {
                                         {earningsData.payoutRequests.map(p => (
                                             <tr key={p.id} className="hover:bg-gray-800/30">
                                                 <td className="px-4 py-3 text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</td>
-                                                <td className="px-4 py-3 font-bold text-emerald-400">${p.amount.toFixed(2)}</td>
+                                                <td className="px-4 py-3 font-bold text-emerald-400">{formatCurrency(p.amount)}</td>
                                                 <td className="px-4 py-3 text-gray-300">{p.method}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`text-xs px-2 py-1 rounded-full font-medium border ${
@@ -412,7 +413,7 @@ export default function VendorDashboard() {
                                                 <td className="px-4 py-3 text-gray-300">{e.affiliateLink?.product?.title}</td>
                                                 <td className="px-4 py-3 text-gray-400">{e.order?.customerName}</td>
                                                 <td className="px-4 py-3 text-gray-500">{new Date(e.createdAt).toLocaleDateString()}</td>
-                                                <td className="px-4 py-3 text-right font-bold text-emerald-400">+${e.amount.toFixed(2)}</td>
+                                                <td className="px-4 py-3 text-right font-bold text-emerald-400">+{formatCurrency(e.amount)}</td>
                                                 <td className="px-4 py-3 text-right">
                                                     <span className={`text-xs px-2 py-1 rounded-full font-medium border ${
                                                         e.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :

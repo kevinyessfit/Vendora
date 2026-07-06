@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
+import { formatCurrency } from '../../lib/currency';
 import { PlusCircle, Package, TrendingUp, Users, Edit2, Trash2, X, DollarSign, ShoppingCart, Calendar, Phone, MapPin, Mail, CreditCard, Eye } from 'lucide-react';
 
 const PAYMENT_LABELS = { COD: 'Cash on Delivery', MOBILE_MONEY: 'Mobile Money', BANK_TRANSFER: 'Bank Transfer' };
@@ -46,21 +47,21 @@ function OrderDetailModal({ order, onClose }) {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between text-gray-400">
                                 <span>Order total</span>
-                                <span className="text-gray-200 font-medium">${order.amount.toFixed(2)}</span>
+                                <span className="text-gray-200 font-medium">{formatCurrency(order.amount)}</span>
                             </div>
                             {order.vendorCommission > 0 && (
                                 <div className="flex justify-between text-gray-400">
                                     <span>Affiliate commission</span>
-                                    <span className="text-red-400">-${order.vendorCommission.toFixed(2)}</span>
+                                    <span className="text-red-400">-{formatCurrency(order.vendorCommission)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-gray-400">
                                 <span>Platform fee</span>
-                                <span className="text-red-400">-${order.platformCommission.toFixed(2)}</span>
+                                <span className="text-red-400">-{formatCurrency(order.platformCommission)}</span>
                             </div>
                             <div className="flex justify-between font-bold border-t border-gray-700 pt-2 mt-1">
                                 <span className="text-gray-200">Your earnings</span>
-                                <span className="text-emerald-400">${order.merchantEarnings.toFixed(2)}</span>
+                                <span className="text-emerald-400">{formatCurrency(order.merchantEarnings)}</span>
                             </div>
                         </div>
                     </div>
@@ -236,7 +237,7 @@ export default function MerchantDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <StatCard label="Total Products" value={products.length} icon={Package} color="bg-gradient-to-br from-primary-600 to-primary-500" />
                 <StatCard label="Total Sales" value={orders.length} icon={ShoppingCart} color="bg-gradient-to-br from-blue-600 to-blue-500" />
-                <StatCard label="Total Earnings" value={`$${totalEarnings.toFixed(2)}`} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
+                <StatCard label="Total Earnings" value={formatCurrency(totalEarnings)} icon={DollarSign} color="bg-gradient-to-br from-emerald-600 to-emerald-500" />
                 <StatCard label="Active Affiliates" value={totalAffiliates} icon={Users} color="bg-gradient-to-br from-purple-600 to-purple-500" />
             </div>
 
@@ -285,7 +286,7 @@ export default function MerchantDashboard() {
                                 <p className="text-sm text-gray-500 line-clamp-2 mb-4">{product.description}</p>
                                 <div className="flex items-center justify-between text-sm mb-4">
                                     <span className="flex items-center gap-1 text-emerald-400 font-bold text-lg">
-                                        <DollarSign size={16} />{product.price.toFixed(2)}
+                                        <DollarSign size={16} />{formatCurrency(product.price)}
                                     </span>
                                     <span className="text-gray-400">{product.commissionPct}% commission</span>
                                 </div>
@@ -339,8 +340,8 @@ export default function MerchantDashboard() {
                                                 <span className="badge-vendor truncate max-w-[120px] font-mono inline-block">Ref: {order.affiliateLink.vendor.name}</span>
                                             ) : <span className="text-gray-600 text-xs italic">Direct</span>}
                                         </td>
-                                        <td className="p-4 text-right font-medium text-gray-300">${order.amount.toFixed(2)}</td>
-                                        <td className="p-4 text-right font-bold text-emerald-400">${order.merchantEarnings.toFixed(2)}</td>
+                                        <td className="p-4 text-right font-medium text-gray-300">{formatCurrency(order.amount)}</td>
+                                        <td className="p-4 text-right font-bold text-emerald-400">{formatCurrency(order.merchantEarnings)}</td>
                                         <td className="p-4 text-right">
                                             <select
                                                 aria-label={`Order status for ${order.customerName}`}

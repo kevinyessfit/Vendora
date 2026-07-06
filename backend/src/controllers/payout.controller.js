@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { sendPayoutRequestNotification } from '../services/email.service.js';
+import { formatCurrency } from '../utils/currency.js';
 
 // VENDOR: get own earnings summary + payout requests
 export const getMyEarnings = async (req, res) => {
@@ -71,7 +72,7 @@ export const requestPayout = async (req, res) => {
 
         if (amt > actualAvailable) {
             return res.status(400).json({
-                error: `Insufficient balance. Available: $${actualAvailable.toFixed(2)}`,
+                error: `Insufficient balance. Available: ${formatCurrency(actualAvailable)}`,
             });
         }
 
