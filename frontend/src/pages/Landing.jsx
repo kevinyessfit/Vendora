@@ -94,8 +94,8 @@ export default function Landing() {
                     <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
                         {[
                             { title: 'Wireless Headphones', price: '90 000 FCFA', commission: '15%', earn: '13 500 FCFA', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80', affiliates: 42 },
-                            { title: 'Smart Fitness Tracker', price: '48 000 FCFA', commission: '12%', earn: '6 000 FCFA', img: 'https://images.unsplash.com/photo-1575311373937-040b8e97fd29?w=400&q=80', affiliates: 31 },
-                            { title: 'Portable Charger Pro', price: '36 000 FCFA', commission: '18%', earn: '6 500 FCFA', img: 'https://images.unsplash.com/photo-1609592806596-b68d78e2d7ef?w=400&q=80', affiliates: 18 },
+                            { title: 'Smart Fitness Tracker', price: '48 000 FCFA', commission: '12%', earn: '6 000 FCFA', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80', affiliates: 31 },
+                            { title: 'Portable Charger Pro', price: '36 000 FCFA', commission: '18%', earn: '6 500 FCFA', img: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?w=400&q=80', affiliates: 18 },
                         ].map((p, i) => (
                             <div key={i} className={`card hover:border-gray-700 transition-all duration-300 hover:-translate-y-1 ${i === 1 ? 'sm:scale-105 border-primary-500/30' : ''}`}>
                                 <div className="h-36 rounded-xl bg-gray-800 overflow-hidden mb-4">
